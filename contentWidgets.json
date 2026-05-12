@@ -1,0 +1,12 @@
+[
+    {
+        "identifier": "AgrarProfiPdfWidget::PdfDocumentsWidget",
+        "label": "Widget.pdfDocumentsLabel",
+        "previewImageURL": "/images/pdf-widget.svg",
+        "type": "static",
+        "categories": ["item"],
+        "position": 1150,
+        "widgetClass": "AgrarProfiPdfWidget\\Widgets\\PdfDocumentsWidget",
+        "settings": {}
+    }
+]

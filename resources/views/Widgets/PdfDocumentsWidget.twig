@@ -1,0 +1,39 @@
+{% set instanceId = "ap-pdf-widget-" ~ random() %}
+{% set manualPropertyId = config('AgrarProfiPdfWidget.manual_property_id')|default('') %}
+{% set datasheetPropertyId = config('AgrarProfiPdfWidget.datasheet_property_id')|default('') %}
+{% set manualPropertyName = config('AgrarProfiPdfWidget.manual_property_name')|default('PDF Anleitung') %}
+{% set datasheetPropertyName = config('AgrarProfiPdfWidget.datasheet_property_name')|default('PDF Datenblatt') %}
+{% set manualTitle = config('AgrarProfiPdfWidget.manual_title')|default('Bedienungsanleitung') %}
+{% set datasheetTitle = config('AgrarProfiPdfWidget.datasheet_title')|default('Datenblatt') %}
+{% set manualLinkLabel = config('AgrarProfiPdfWidget.manual_link_label')|default('Bedienungsanleitung öffnen') %}
+{% set datasheetLinkLabel = config('AgrarProfiPdfWidget.datasheet_link_label')|default('Datenblatt öffnen') %}
+{% set publicStorageBase = config('AgrarProfiPdfWidget.public_storage_base')|default('') %}
+{% set hideWhenEmpty = config('AgrarProfiPdfWidget.hide_when_empty')|default('1') %}
+{% set debugMode = config('AgrarProfiPdfWidget.debug_mode')|default('0') %}
+
+<link rel="stylesheet" href="{{ plugin_path('AgrarProfiPdfWidget') }}/css/pdf-widget-v210.css">
+
+<div id="{{ instanceId }}"
+     class="ap-pdf-widget ap-pdf-widget-loading"
+     data-ap-pdf-widget
+     data-manual-property-id="{{ manualPropertyId|e('html_attr') }}"
+     data-datasheet-property-id="{{ datasheetPropertyId|e('html_attr') }}"
+     data-manual-property-name="{{ manualPropertyName|e('html_attr') }}"
+     data-datasheet-property-name="{{ datasheetPropertyName|e('html_attr') }}"
+     data-manual-title="{{ manualTitle|e('html_attr') }}"
+     data-datasheet-title="{{ datasheetTitle|e('html_attr') }}"
+     data-manual-link-label="{{ manualLinkLabel|e('html_attr') }}"
+     data-datasheet-link-label="{{ datasheetLinkLabel|e('html_attr') }}"
+     data-public-storage-base="{{ publicStorageBase|e('html_attr') }}"
+     data-hide-when-empty="{{ hideWhenEmpty|e('html_attr') }}"
+     data-debug-mode="{{ debugMode|e('html_attr') }}">
+    <div class="ap-pdf-widget-list" data-ap-pdf-list>
+        {% if isPreview %}
+            <div class="ap-pdf-widget-placeholder">
+                Im Frontend werden hier die PDF-Dateien aus den konfigurierten Varianten-Eigenschaften angezeigt.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="{{ plugin_path('AgrarProfiPdfWidget') }}/js/pdf-widget-v210.js" defer></script>

@@ -1,0 +1,101 @@
+[
+    {
+        "tab": "PDF-Widget",
+        "key": "manual_property_id",
+        "label": "Eigenschaft-ID für Bedienungsanleitung",
+        "type": "text",
+        "default": "",
+        "possibleValues": [],
+        "description": "ID der Varianten-Eigenschaft vom Typ Datei für die Bedienungsanleitung. Wichtig für die exakte Erkennung."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "datasheet_property_id",
+        "label": "Eigenschaft-ID für Datenblatt",
+        "type": "text",
+        "default": "",
+        "possibleValues": [],
+        "description": "ID der Varianten-Eigenschaft vom Typ Datei für das Datenblatt. Wichtig für die exakte Erkennung."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "manual_property_name",
+        "label": "Eigenschaftsname Bedienungsanleitung",
+        "type": "text",
+        "default": "PDF Anleitung",
+        "possibleValues": [],
+        "description": "Fallback-Erkennung anhand des Eigenschaftsnamens, falls die ID im Frontend-Datensatz nicht enthalten ist."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "datasheet_property_name",
+        "label": "Eigenschaftsname Datenblatt",
+        "type": "text",
+        "default": "PDF Datenblatt",
+        "possibleValues": [],
+        "description": "Fallback-Erkennung anhand des Eigenschaftsnamens, falls die ID im Frontend-Datensatz nicht enthalten ist."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "manual_title",
+        "label": "Titel Bedienungsanleitung",
+        "type": "text",
+        "default": "Bedienungsanleitung",
+        "possibleValues": [],
+        "description": "Titel auf der PDF-Kachel."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "datasheet_title",
+        "label": "Titel Datenblatt",
+        "type": "text",
+        "default": "Datenblatt",
+        "possibleValues": [],
+        "description": "Titel auf der PDF-Kachel."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "manual_link_label",
+        "label": "Linktext Bedienungsanleitung",
+        "type": "text",
+        "default": "Bedienungsanleitung öffnen",
+        "possibleValues": [],
+        "description": "Untertitel auf der PDF-Kachel."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "datasheet_link_label",
+        "label": "Linktext Datenblatt",
+        "type": "text",
+        "default": "Datenblatt öffnen",
+        "possibleValues": [],
+        "description": "Untertitel auf der PDF-Kachel."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "public_storage_base",
+        "label": "Optionale öffentliche plenty-Datei-Basis-URL",
+        "type": "text",
+        "default": "",
+        "possibleValues": [],
+        "description": "Nur nötig, falls aus Datei-Eigenschaften relative Pfade entstehen. Beispiel: https://s3-eu-west-1.amazonaws.com/plentymarkets-public-94/qw2mi3mfxcod"
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "hide_when_empty",
+        "label": "Widget ausblenden, wenn keine PDF gefunden wird",
+        "type": "checkbox",
+        "default": "1",
+        "possibleValues": [],
+        "description": "Empfohlen: aktiv lassen. Der ShopBuilder-Reiter selbst bleibt sichtbar, wenn er statisch im Layout angelegt wurde."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "debug_mode",
+        "label": "Debug-Modus aktivieren",
+        "type": "checkbox",
+        "default": "0",
+        "possibleValues": [],
+        "description": "Zeigt technische Hinweise im Widget an. Nur zum Testen aktivieren."
+    }
+]
