@@ -91,6 +91,15 @@
     },
     {
         "tab": "PDF-Widget",
+        "key": "hide_tab_when_empty",
+        "label": "ShopBuilder-Reiter ausblenden, wenn keine PDF gefunden wird",
+        "type": "checkbox",
+        "default": "1",
+        "possibleValues": [],
+        "description": "Blendet den übergeordneten Tab/Reiter aus, wenn das Widget im Reiter liegt und keine PDF-Dateien für den Artikel gefunden wurden."
+    },
+    {
+        "tab": "PDF-Widget",
         "key": "debug_mode",
         "label": "Debug-Modus aktivieren",
         "type": "checkbox",

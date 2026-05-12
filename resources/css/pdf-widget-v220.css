@@ -82,3 +82,7 @@
     color: #333;
     font-size: 13px;
 }
+
+.ap-pdf-widget-empty {
+    display: none !important;
+}

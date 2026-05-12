@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V210__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V220__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -107,6 +107,7 @@
             datasheetLinkLabel: widget.getAttribute("data-datasheet-link-label") || "Datenblatt öffnen",
             publicStorageBase: widget.getAttribute("data-public-storage-base") || "",
             hideWhenEmpty: isTrue(widget.getAttribute("data-hide-when-empty")),
+            hideTabWhenEmpty: isTrue(widget.getAttribute("data-hide-tab-when-empty")),
             debugMode: isTrue(widget.getAttribute("data-debug-mode"))
         };
     }
@@ -116,7 +117,7 @@
         if (type === "manual") {
             return contains(context, cfg.manualPropertyId) || contains(context, cfg.manualPropertyName) ||
                 context.indexOf("bedienungsanleitung") !== -1 || context.indexOf("gebrauchsanweisung") !== -1 ||
-                context.indexOf("betriebsanleitung") !== -1;
+                context.indexOf("betriebsanleitung") !== -1 || context.indexOf("anleitung") !== -1;
         }
         if (type === "datasheet") {
             return contains(context, cfg.datasheetPropertyId) || contains(context, cfg.datasheetPropertyName) ||
@@ -176,14 +177,6 @@
             }
         } catch (ignoreItem) {}
 
-        // Fallback: only small inline scripts that mention PDFs and at least one relevant property term.
-        var scripts = document.querySelectorAll("script:not([src])");
-        for (var i = 0; i < scripts.length; i++) {
-            var text = scripts[i].textContent || "";
-            if (text.indexOf(".pdf") !== -1 && text.length < 600000) {
-                sources.push(text);
-            }
-        }
         return sources;
     }
 
@@ -218,7 +211,6 @@
             result.push(doc);
         }
 
-        // Only one document per configured type.
         var manual = null;
         var datasheet = null;
         for (i = 0; i < result.length; i++) {
@@ -283,6 +275,87 @@
         return a;
     }
 
+    function cssEscape(value) {
+        if (window.CSS && typeof window.CSS.escape === "function") {
+            return window.CSS.escape(value);
+        }
+        return toStringValue(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+    }
+
+    function findTabPane(widget) {
+        var el = widget.parentElement;
+        while (el && el !== document.body) {
+            if (el.getAttribute("role") === "tabpanel" || (el.classList && el.classList.contains("tab-pane"))) {
+                return el;
+            }
+            if (el.id) {
+                var selector = '[href="#' + cssEscape(el.id) + '"], [data-target="#' + cssEscape(el.id) + '"], [aria-controls="' + cssEscape(el.id) + '"]';
+                if (document.querySelector(selector)) {
+                    return el;
+                }
+            }
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    function findTabToggleForPane(pane) {
+        if (!pane || !pane.id) {
+            return null;
+        }
+        var id = cssEscape(pane.id);
+        return document.querySelector('[href="#' + id + '"], [data-target="#' + id + '"], [aria-controls="' + id + '"]');
+    }
+
+    function isElementVisible(el) {
+        return !!(el && el.offsetParent !== null && getComputedStyle(el).display !== "none" && getComputedStyle(el).visibility !== "hidden");
+    }
+
+    function activateFirstVisibleSiblingTab(hiddenToggle) {
+        if (!hiddenToggle) {
+            return;
+        }
+        var navItem = hiddenToggle.closest ? hiddenToggle.closest("li, .nav-item, [role='presentation']") : null;
+        var nav = navItem && navItem.parentElement ? navItem.parentElement : hiddenToggle.parentElement;
+        if (!nav) {
+            return;
+        }
+        var toggles = nav.querySelectorAll('[href^="#"], [data-target^="#"], [aria-controls]');
+        for (var i = 0; i < toggles.length; i++) {
+            if (toggles[i] !== hiddenToggle && isElementVisible(toggles[i])) {
+                try {
+                    toggles[i].click();
+                } catch (ignoreClick) {}
+                return;
+            }
+        }
+    }
+
+    function hideParentTab(widget) {
+        var pane = findTabPane(widget);
+        var toggle = findTabToggleForPane(pane);
+
+        if (pane) {
+            pane.hidden = true;
+            pane.style.display = "none";
+            pane.setAttribute("data-ap-pdf-tab-hidden", "1");
+        }
+
+        if (toggle) {
+            var wasActive = toggle.classList && toggle.classList.contains("active");
+            var navItem = toggle.closest ? toggle.closest("li, .nav-item, [role='presentation']") : null;
+            var target = navItem || toggle;
+            target.hidden = true;
+            target.style.display = "none";
+            target.setAttribute("data-ap-pdf-tab-hidden", "1");
+            toggle.setAttribute("aria-hidden", "true");
+            toggle.setAttribute("tabindex", "-1");
+            if (wasActive) {
+                activateFirstVisibleSiblingTab(toggle);
+            }
+        }
+    }
+
     function renderWidget(widget) {
         if (!widget || widget.getAttribute("data-ap-pdf-initialized") === "1") {
             return;
@@ -298,6 +371,7 @@
         list.innerHTML = "";
 
         if (!result.documents.length) {
+            widget.classList.add("ap-pdf-widget-empty");
             if (cfg.hideWhenEmpty) {
                 widget.hidden = true;
             } else {
@@ -306,7 +380,12 @@
                 empty.textContent = "Keine PDF-Dokumente gefunden.";
                 list.appendChild(empty);
             }
+            if (cfg.hideTabWhenEmpty) {
+                hideParentTab(widget);
+            }
         } else {
+            widget.hidden = false;
+            widget.classList.remove("ap-pdf-widget-empty");
             for (var i = 0; i < result.documents.length; i++) {
                 list.appendChild(makeDocumentLink(result.documents[i]));
             }

@@ -1,4 +1,4 @@
-# AgrarProfiPdfWidget 2.1.0
+# AgrarProfiPdfWidget 2.2.0
 
 Reines ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
 
@@ -14,8 +14,13 @@ Empfohlener Einsatz:
 4. Im Plugin die Eigenschafts-IDs für Anleitung und Datenblatt eintragen.
 5. Im ShopBuilder im gewünschten Artikel-Tab das Widget `PDF-Dokumente aus Artikel-Eigenschaften` platzieren.
 
+## Neu in 2.2.0
+
+- Optionales Ausblenden des übergeordneten ShopBuilder-/Tab-Reiters, wenn keine PDFs gefunden werden.
+- Neuer JS-/CSS-Dateiname zur Cache-Trennung.
+- Das Widget durchsucht nur den aktuellen Ceres-Artikelzustand und keine globalen Inline-Skripte mehr. Dadurch werden keine PDF-Links von anderen Artikeln übernommen.
+
 ## Hinweise
 
-- Das Widget sucht nur nach PDFs, die im Frontend-Datensatz mit den konfigurierten Eigenschaften zusammenhängen.
-- Es gibt keinen rekursiven Scan durch `window.ceresStore` mehr.
-- Wenn keine PDFs gefunden werden, blendet sich das Widget aus. Der ShopBuilder-Tab selbst bleibt sichtbar, wenn er im Layout statisch angelegt wurde.
+- Das Widget sucht nur nach PDFs, die im aktuellen Frontend-Artikeldatensatz mit den konfigurierten Eigenschaften zusammenhängen.
+- Wenn keine PDFs gefunden werden, blendet sich das Widget aus. Ist die Option aktiviert, wird zusätzlich der umgebende Tab-Reiter ausgeblendet.
