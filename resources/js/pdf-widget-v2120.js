@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2110__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2120__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -302,16 +302,83 @@
         return bestDistance <= maxDistance ? best : null;
     }
 
+    function findBlockEnd(text, pos) {
+        var candidates = [];
+        var delimiters = [
+            '},{"cast"',
+            '},{\"cast\"',
+            '},{&quot;cast&quot;',
+            '},{&#34;cast&#34;'
+        ];
+        for (var i = 0; i < delimiters.length; i++) {
+            var next = text.indexOf(delimiters[i], pos + 1);
+            if (next > pos) {
+                candidates.push(next);
+            }
+        }
+        var min = -1;
+        for (var x = 0; x < candidates.length; x++) {
+            if (min === -1 || candidates[x] < min) {
+                min = candidates[x];
+            }
+        }
+        return min > -1 ? min : Math.min(text.length, pos + 5000);
+    }
+
+    function extractPdfValueFromPropertyBlock(block) {
+        var patterns = [
+            /"values"\s*:\s*\{[\s\S]{0,2500}?"value"\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"/i,
+            /"value"\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"/i,
+            /values\s*:\s*\{[\s\S]{0,2500}?value\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"/i,
+            /value\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"/i
+        ];
+        for (var i = 0; i < patterns.length; i++) {
+            var match = patterns[i].exec(block);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+        return "";
+    }
+
     function addStructuredPlentyCandidates(text, out, cfg) {
         // plentyShop stores file properties in the rendered item JSON like:
         // "propertyId":1935 ... "values":{"id":192670,"value":"192670/Scharmueller.pdf"}
         // The value is often a relative propertyItems path and may be JSON-escaped.
+        // Version 2.12 uses an additional block based parser, because multiple file
+        // properties can occur in the same variationProperties array and the generic
+        // nearby-PDF matching can otherwise pick only the first file.
         for (var i = 0; i < cfg.documents.length; i++) {
             var doc = cfg.documents[i];
             var id = escapeRegExp(doc.id);
+
+            var propertyIdPatterns = [
+                new RegExp('"propertyId"\\s*:\\s*"?' + id + '"?', 'ig'),
+                new RegExp('propertyId\\s*:\\s*"?' + id + '"?', 'ig')
+            ];
+
+            for (var pp = 0; pp < propertyIdPatterns.length; pp++) {
+                var propertyRe = propertyIdPatterns[pp];
+                var propertyMatch;
+                while ((propertyMatch = propertyRe.exec(text)) !== null) {
+                    var blockStart = propertyMatch.index;
+                    var blockEnd = findBlockEnd(text, blockStart);
+                    var block = text.slice(blockStart, blockEnd);
+                    var pdfValue = extractPdfValueFromPropertyBlock(block);
+                    if (pdfValue) {
+                        addCandidateForDocument(out, pdfValue, doc, cfg.publicStorageBase);
+                    }
+                    if (propertyRe.lastIndex === propertyMatch.index) {
+                        propertyRe.lastIndex++;
+                    }
+                }
+            }
+
+            // Keep the old broader patterns as fallback, but with correct escaped
+            // backslashes in the RegExp strings.
             var patterns = [
-                new RegExp('(?:"propertyId"|propertyId)\s*:\s*"?' + id + '"?[\s\S]{0,7000}?(?:"values"|values)\s*:\s*\{[\s\S]{0,1600}?(?:"value"|value)\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"', 'ig'),
-                new RegExp('(?:"id"|id)\s*:\s*"?' + id + '"?[\s\S]{0,7000}?(?:"values"|values)\s*:\s*\{[\s\S]{0,1600}?(?:"value"|value)\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"', 'ig')
+                new RegExp('(?:"propertyId"|propertyId)\\s*:\\s*"?' + id + '"?[\\s\\S]{0,7000}?(?:"values"|values)\\s*:\\s*\\{[\\s\\S]{0,1600}?(?:"value"|value)\\s*:\\s*"([^"<>]+?\\.pdf(?:[?#][^"<>]*)?)"', 'ig'),
+                new RegExp('(?:"id"|id)\\s*:\\s*"?' + id + '"?[\\s\\S]{0,7000}?(?:"values"|values)\\s*:\\s*\\{[\\s\\S]{0,1600}?(?:"value"|value)\\s*:\\s*"([^"<>]+?\\.pdf(?:[?#][^"<>]*)?)"', 'ig')
             ];
             for (var p = 0; p < patterns.length; p++) {
                 var re = patterns[p];
@@ -532,7 +599,7 @@
         if (cfg.debugMode) {
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.11.0";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.12.0";
             list.appendChild(debug);
         }
 

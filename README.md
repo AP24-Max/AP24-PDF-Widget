@@ -1,25 +1,12 @@
-# AgrarProfiPdfWidget 2.11.0
+# AgrarProfiPdfWidget 2.12.0
 
-ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
+ShopBuilder-Widget für PDF-Dokumente aus plentyONE Varianten-Eigenschaften vom Typ `Datei`.
 
-## Grundprinzip
+## Nutzung
 
-Der Tab `Datenblatt/Anleitungen` wird fest im ShopBuilder angelegt. Dieses Plugin erzeugt keinen Tab und blendet keinen Tab aus. Das Widget erzeugt ausschließlich die PDF-Kacheln innerhalb des vorhandenen ShopBuilder-Tabs.
+Im ShopBuilder einen festen Tab anlegen, z. B. `Datenblätter/Anleitungen`, und dieses Widget in den Tab ziehen.
 
-## Wichtig in Version 2.11.0
-
-Die CSS- und JavaScript-Dateien werden nicht mehr direkt im Widget-HTML ausgegeben. Stattdessen werden sie über Ceres-Container geladen:
-
-- `PDF-Widget: Styles` → `Ceres::SingleItem.Styles`
-- `PDF-Widget: Script` → `Ceres::SingleItem.AfterScriptsLoaded`
-
-Dadurch landen keine `<link>`- oder `<script>`-Tags mehr im ShopBuilder-Tab-Inhalt. Das soll Layout-Probleme mit nachfolgenden Bereichen wie Kontaktformular und Footer vermeiden.
-
-## Konfiguration
-
-Im Feld `PDF-Dokumente / Eigenschaften` gilt: eine Zeile = eine PDF-Kachel.
-
-Format:
+Im Plugin unter `PDF-Widget` pro Dokument eine Zeile pflegen:
 
 ```text
 Eigenschaft-ID|Titel|Linktext
@@ -30,22 +17,30 @@ Beispiel:
 ```text
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen
 1935|Datenblatt|Datenblatt öffnen
-2040|Explosionszeichnung|Explosionszeichnung öffnen
 ```
 
-Optional kann als vierter Wert ein Eigenschaftsname ergänzt werden:
+Optional kann ein Eigenschaftsname als vierter Wert angegeben werden:
 
 ```text
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen|PDF Anleitung
 ```
 
-## ShopBuilder
+## Version 2.12.0
 
-Im ShopBuilder den Reiter `Datenblatt/Anleitungen` fest anlegen und in diesen Reiter das Widget `PDF-Dokumente aus Artikel-Eigenschaften` ziehen.
+Verbesserter Parser für mehrere plenty Datei-Eigenschaften im gerenderten `variationProperties`-JSON. Er erkennt jetzt gezielt Blöcke mit `propertyId` und `values.value`, z. B.:
 
-Wenn für einen Artikel keine passende Datei-Eigenschaft gefunden wird, bleibt der Reiter sichtbar, aber die Widget-Ausgabe bleibt leer.
+```json
+"propertyId":1935,
+"values":{"id":192670,"value":"192670/Scharmueller-(36).pdf"}
+```
 
+Daraus wird automatisch eine öffentliche `propertyItems`-URL zusammengesetzt.
 
-## Version 2.11.0
+## Container-Verknüpfungen
 
-Erweitert die Erkennung von plenty-Dateieigenschaften. Relative Werte wie `192670/Datei.pdf` werden jetzt direkt anhand der konfigurierten Eigenschaft-ID aus den `variationProperties` gelesen.
+Für Styles und Script müssen diese Container gesetzt sein:
+
+- `PDF-Widget: Styles` → `Ceres::SingleItem.Styles`
+- `PDF-Widget: Script` → `Ceres::SingleItem.AfterScriptsLoaded`
+
+Das Widget erzeugt keinen Tab und blendet keinen Tab aus.
