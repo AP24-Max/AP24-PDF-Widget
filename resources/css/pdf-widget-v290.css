@@ -1,3 +1,6 @@
+/* AgrarProfiPdfWidget v2.9.0
+   Scope is intentionally limited to the widget itself. No ShopBuilder rows,
+   columns, tabs or parent containers are targeted. */
 .ap-pdf-widget,
 .ap-pdf-widget * {
     box-sizing: border-box;
@@ -12,48 +15,41 @@
     padding: 0;
     border: 0;
     float: none;
-    clear: both;
+    clear: none;
     overflow: visible;
 }
 
-.ap-pdf-widget-ready.ap-pdf-widget-has-documents {
-    margin: 18px 0;
-}
-
-.ap-pdf-widget-no-documents {
-    min-height: 1px;
-    height: auto;
-    margin: 0;
-    padding: 0;
-}
-
 .ap-pdf-widget-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px;
+    display: block;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    margin: 0;
+    padding: 0;
 }
 
-.ap-pdf-widget-no-documents .ap-pdf-widget-list {
-    display: block;
-    height: 1px;
-    min-height: 1px;
-    max-height: 1px;
-    overflow: hidden;
+.ap-pdf-widget.ap-pdf-widget-has-documents {
+    margin: 18px 0;
+}
+
+.ap-pdf-widget.ap-pdf-widget-has-documents .ap-pdf-widget-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
 }
 
 .ap-pdf-empty-spacer {
-    display: block;
+    display: inline-block;
     width: 1px;
     height: 1px;
+    min-width: 1px;
     min-height: 1px;
+    max-width: 1px;
     max-height: 1px;
-    margin: 0;
-    padding: 0;
     overflow: hidden;
-    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    vertical-align: top;
     font-size: 0;
     line-height: 0;
 }
@@ -139,11 +135,10 @@
     background: #f7fbf2;
     color: #333;
     font-size: 13px;
-    visibility: visible;
 }
 
 @media (max-width: 575.98px) {
-    .ap-pdf-widget-list {
+    .ap-pdf-widget.ap-pdf-widget-has-documents .ap-pdf-widget-list {
         display: block;
     }
 

@@ -1,28 +1,46 @@
-# AgrarProfiPdfWidget 2.8.0
+# AgrarProfiPdfWidget 2.9.0
 
-Reines ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
+ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
 
-## Prinzip
+## Grundprinzip
 
-Der Reiter `Datenblatt/Anleitungen` wird fest im ShopBuilder angelegt. Dieses Plugin erzeugt und versteckt keinen Reiter.
-Das Widget gibt nur PDF-Kacheln aus. Wenn keine passenden PDF-Dateien gefunden werden, bleibt die Ausgabe leer und layoutstabil.
+Der Tab `Datenblatt/Anleitungen` wird fest im ShopBuilder angelegt. Dieses Plugin erzeugt keinen Tab und blendet keinen Tab aus. Das Widget erzeugt ausschließlich die PDF-Kacheln innerhalb des vorhandenen ShopBuilder-Tabs.
+
+## Wichtig in Version 2.9.0
+
+Die CSS- und JavaScript-Dateien werden nicht mehr direkt im Widget-HTML ausgegeben. Stattdessen werden sie über Ceres-Container geladen:
+
+- `PDF-Widget: Styles` → `Ceres::SingleItem.Styles`
+- `PDF-Widget: Script` → `Ceres::SingleItem.AfterScriptsLoaded`
+
+Dadurch landen keine `<link>`- oder `<script>`-Tags mehr im ShopBuilder-Tab-Inhalt. Das soll Layout-Probleme mit nachfolgenden Bereichen wie Kontaktformular und Footer vermeiden.
 
 ## Konfiguration
 
-Eine Zeile pro Dokument:
+Im Feld `PDF-Dokumente / Eigenschaften` gilt: eine Zeile = eine PDF-Kachel.
 
-```
+Format:
+
+```text
 Eigenschaft-ID|Titel|Linktext
+```
+
+Beispiel:
+
+```text
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen
 1935|Datenblatt|Datenblatt öffnen
+2040|Explosionszeichnung|Explosionszeichnung öffnen
 ```
 
-Optional als 4. Wert ein Eigenschaftsname als Fallback:
+Optional kann als vierter Wert ein Eigenschaftsname ergänzt werden:
 
-```
+```text
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen|PDF Anleitung
 ```
 
 ## ShopBuilder
 
-Widget in den fest angelegten Reiter `Datenblatt/Anleitungen` ziehen.
+Im ShopBuilder den Reiter `Datenblatt/Anleitungen` fest anlegen und in diesen Reiter das Widget `PDF-Dokumente aus Artikel-Eigenschaften` ziehen.
+
+Wenn für einen Artikel keine passende Datei-Eigenschaft gefunden wird, bleibt der Reiter sichtbar, aber die Widget-Ausgabe bleibt leer.

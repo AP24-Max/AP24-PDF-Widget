@@ -19,15 +19,6 @@
     },
     {
         "tab": "PDF-Widget",
-        "key": "hide_when_empty",
-        "label": "Widget ausblenden, wenn keine PDF gefunden wird",
-        "type": "checkbox",
-        "default": "1",
-        "possibleValues": [],
-        "description": "Der ShopBuilder-Reiter bleibt immer sichtbar. Bei aktivierter Option bleibt nur die Widget-Ausgabe leer, ohne Container oder Reiter auszublenden."
-    },
-    {
-        "tab": "PDF-Widget",
         "key": "debug_mode",
         "label": "Debug-Modus aktivieren",
         "type": "checkbox",

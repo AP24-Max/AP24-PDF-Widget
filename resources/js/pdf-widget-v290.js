@@ -1,10 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V280__";
-    var CACHE_BY_URL = {};
-    var PENDING_CALLBACKS_BY_URL = {};
-
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V290__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -89,38 +86,24 @@
         if (configured) {
             return configured;
         }
-        if (rawUrl) {
-            var fromRaw = extractPublicBaseFromUrl(rawUrl);
-            if (fromRaw) {
-                return fromRaw;
-            }
+        var fromRaw = extractPublicBaseFromUrl(rawUrl || "");
+        if (fromRaw) {
+            return fromRaw;
         }
         if (cachedBase !== null) {
             return cachedBase;
         }
 
-        var urls = [];
         var nodes = document.querySelectorAll("link[href], script[src]");
         for (var i = 0; i < nodes.length; i++) {
-            urls.push(nodes[i].href || nodes[i].src || "");
-        }
-
-        var preferred = "";
-        var fallback = "";
-        for (var u = 0; u < urls.length; u++) {
-            var base = extractPublicBaseFromUrl(urls[u]);
-            if (!base) {
-                continue;
-            }
-            if (urls[u].indexOf("plentymarkets-public") !== -1 || urls[u].indexOf("s3-eu-west-1.amazonaws.com") !== -1) {
-                preferred = base;
-                break;
-            }
-            if (!fallback) {
-                fallback = base;
+            var href = nodes[i].href || nodes[i].src || "";
+            var base = extractPublicBaseFromUrl(href);
+            if (base && (href.indexOf("plentymarkets-public") !== -1 || href.indexOf("amazonaws.com") !== -1)) {
+                cachedBase = base;
+                return cachedBase;
             }
         }
-        cachedBase = preferred || fallback || "";
+        cachedBase = "";
         return cachedBase;
     }
 
@@ -224,7 +207,6 @@
         return {
             documents: parseDocumentConfig(widget.getAttribute("data-documents-config") || ""),
             publicStorageBase: widget.getAttribute("data-public-storage-base") || "",
-            hideWhenEmpty: isTrue(widget.getAttribute("data-hide-when-empty")),
             debugMode: isTrue(widget.getAttribute("data-debug-mode"))
         };
     }
@@ -253,9 +235,7 @@
             propertyId: docConfig.id,
             title: docConfig.title,
             linkLabel: docConfig.linkLabel,
-            url: url,
-            rawUrl: rawUrl,
-            context: toStringValue(context).slice(0, 500)
+            url: url
         });
     }
 
@@ -296,156 +276,17 @@
 
     function collectWidgetSourceTexts(widget) {
         var sources = [];
-        var properties = getWidgetJsonAttribute(widget, "data-ap-pdf-properties");
-        var variationProperties = getWidgetJsonAttribute(widget, "data-ap-pdf-variation-properties");
-        var i;
-        for (i = 0; i < properties.length; i++) {
-            var text = safeStringify(properties[i]);
-            if (text && text.indexOf(".pdf") !== -1) {
-                sources.push(text);
-            }
-        }
-        for (i = 0; i < variationProperties.length; i++) {
-            var vText = safeStringify(variationProperties[i]);
-            if (vText && vText.indexOf(".pdf") !== -1) {
-                sources.push(vText);
+        var attrs = ["data-ap-pdf-properties", "data-ap-pdf-variation-properties"];
+        for (var a = 0; a < attrs.length; a++) {
+            var values = getWidgetJsonAttribute(widget, attrs[a]);
+            for (var i = 0; i < values.length; i++) {
+                var text = safeStringify(values[i]);
+                if (text && text.indexOf(".pdf") !== -1) {
+                    sources.push(text);
+                }
             }
         }
         return sources;
-    }
-
-    function shouldSkipObject(value) {
-        if (!value || typeof value !== "object") {
-            return true;
-        }
-        if (value === window || value === document || value === document.documentElement || value === document.body) {
-            return true;
-        }
-        if (typeof Node !== "undefined" && value instanceof Node) {
-            return true;
-        }
-        return false;
-    }
-
-    function findGlobalSourcesAsync(cfg, done) {
-        var cacheKey = window.location.href;
-        if (CACHE_BY_URL[cacheKey]) {
-            done(CACHE_BY_URL[cacheKey]);
-            return;
-        }
-        if (PENDING_CALLBACKS_BY_URL[cacheKey]) {
-            PENDING_CALLBACKS_BY_URL[cacheKey].push(done);
-            return;
-        }
-        PENDING_CALLBACKS_BY_URL[cacheKey] = [done];
-
-        var roots = [];
-        if (window.ceresStore) {
-            roots.push({ label: "window.ceresStore", value: window.ceresStore });
-        }
-        if (window.App) {
-            roots.push({ label: "window.App", value: window.App });
-        }
-
-        var queue = roots;
-        var seen = typeof WeakSet !== "undefined" ? new WeakSet() : null;
-        var sources = [];
-        var visited = 0;
-        var maxVisited = 12000;
-        var maxSources = 40;
-        var chunkSize = 300;
-
-        function finish() {
-            var result = { sources: sources, visited: visited };
-            CACHE_BY_URL[cacheKey] = result;
-            var callbacks = PENDING_CALLBACKS_BY_URL[cacheKey] || [];
-            delete PENDING_CALLBACKS_BY_URL[cacheKey];
-            for (var cb = 0; cb < callbacks.length; cb++) {
-                callbacks[cb](result);
-            }
-        }
-
-        function processChunk() {
-            var count = 0;
-            while (queue.length && count < chunkSize && visited < maxVisited && sources.length < maxSources) {
-                var item = queue.shift();
-                var value = item.value;
-                count++;
-                visited++;
-
-                if (value === null || value === undefined) {
-                    continue;
-                }
-
-                if (typeof value === "string") {
-                    if (value.indexOf(".pdf") !== -1) {
-                        sources.push(item.label + ":" + value);
-                    }
-                    continue;
-                }
-
-                if (typeof value !== "object" || shouldSkipObject(value)) {
-                    continue;
-                }
-
-                if (seen) {
-                    if (seen.has(value)) {
-                        continue;
-                    }
-                    seen.add(value);
-                }
-
-                var keys;
-                try {
-                    keys = Object.keys(value);
-                } catch (ignore) {
-                    continue;
-                }
-
-                var hasPdfPrimitive = false;
-                for (var i = 0; i < keys.length; i++) {
-                    var k = keys[i];
-                    var child;
-                    try {
-                        child = value[k];
-                    } catch (ignore2) {
-                        continue;
-                    }
-                    if (typeof child === "string" && child.indexOf(".pdf") !== -1) {
-                        hasPdfPrimitive = true;
-                    }
-                    if (child && typeof child === "object" && !shouldSkipObject(child)) {
-                        queue.push({ label: item.label + "." + k, value: child });
-                    } else if (typeof child === "string" && child.length < 2000) {
-                        // Primitive strings are kept with their local path for context.
-                        if (child.indexOf(".pdf") !== -1) {
-                            queue.push({ label: item.label + "." + k, value: child });
-                        }
-                    }
-                }
-
-                if (hasPdfPrimitive) {
-                    var context = safeStringify(value);
-                    if (context && context.indexOf(".pdf") !== -1) {
-                        // Only keep JSON snippets that can plausibly match one configured document.
-                        for (var d = 0; d < cfg.documents.length; d++) {
-                            if (contextMatchesDocument(context, cfg.documents[d])) {
-                                sources.push(context);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if ((queue.length && visited < maxVisited && sources.length < maxSources)) {
-                window.setTimeout(processChunk, 0);
-            } else {
-                finish();
-            }
-        }
-
-        window.setTimeout(processChunk, 0);
     }
 
     function canonicalKey(url) {
@@ -461,9 +302,8 @@
         var byProperty = {};
         var i;
         for (i = 0; i < raw.length; i++) {
-            var key = raw[i].propertyId;
-            if (!byProperty[key]) {
-                byProperty[key] = raw[i];
+            if (!byProperty[raw[i].propertyId]) {
+                byProperty[raw[i].propertyId] = raw[i];
             }
         }
 
@@ -477,9 +317,9 @@
             doc.title = configured.title;
             doc.linkLabel = configured.linkLabel;
             var duplicate = false;
-            var key2 = canonicalKey(doc.url);
+            var key = canonicalKey(doc.url);
             for (var x = 0; x < ordered.length; x++) {
-                if (ordered[x].propertyId === doc.propertyId || canonicalKey(ordered[x].url) === key2) {
+                if (ordered[x].propertyId === doc.propertyId || canonicalKey(ordered[x].url) === key) {
                     duplicate = true;
                     break;
                 }
@@ -491,8 +331,9 @@
         return ordered;
     }
 
-    function findDocumentsFromSources(sources, cfg) {
+    function findDocuments(widget, cfg) {
         var candidates = [];
+        var sources = collectWidgetSourceTexts(widget);
         for (var i = 0; i < sources.length; i++) {
             extractPdfCandidatesFromText(sources[i], candidates, cfg);
         }
@@ -534,21 +375,7 @@
         return a;
     }
 
-    function renderEmpty(widget, list, cfg, result, globalInfo) {
-        widget.classList.remove("ap-pdf-widget-has-documents");
-        widget.classList.add("ap-pdf-widget-no-documents");
-        list.innerHTML = "";
-
-        if (cfg.debugMode) {
-            var debugEmpty = document.createElement("div");
-            debugEmpty.className = "ap-pdf-widget-debug";
-            debugEmpty.textContent = "PDF-Widget Debug: Dokumente=0, Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", GlobalVisited=" + (globalInfo ? globalInfo.visited : 0) + ", v=2.8.0";
-            list.appendChild(debugEmpty);
-            return;
-        }
-
-        // Important: keep a minimal real element in the ShopBuilder tab content.
-        // Some tab layouts collapse or damage following rows when a tab pane becomes completely empty.
+    function appendSpacer(list) {
         var spacer = document.createElement("span");
         spacer.className = "ap-pdf-empty-spacer";
         spacer.setAttribute("aria-hidden", "true");
@@ -556,89 +383,56 @@
         list.appendChild(spacer);
     }
 
-    function renderDocuments(widget, list, cfg, result, globalInfo) {
-        widget.classList.remove("ap-pdf-widget-no-documents");
-        widget.classList.add("ap-pdf-widget-has-documents");
-        list.innerHTML = "";
-        for (var i = 0; i < result.documents.length; i++) {
-            list.appendChild(makeDocumentLink(result.documents[i]));
-        }
-        if (cfg.debugMode) {
-            var debug = document.createElement("div");
-            debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", GlobalVisited=" + (globalInfo ? globalInfo.visited : 0) + ", v=2.8.0";
-            list.appendChild(debug);
-        }
-    }
-
-    function finishWidget(widget) {
-        widget.classList.remove("ap-pdf-widget-loading");
-        widget.classList.add("ap-pdf-widget-ready");
-        widget.setAttribute("data-ap-pdf-rendered", "1");
-        widget.hidden = false;
-        widget.removeAttribute("hidden");
-    }
-
-    function renderWidget(widget, allowAsyncFallback) {
+    function renderWidget(widget) {
         if (!widget) {
             return;
         }
-
         var cfg = readConfig(widget);
         var list = widget.querySelector("[data-ap-pdf-list]");
         if (!list) {
             return;
         }
 
-        var widgetSources = collectWidgetSourceTexts(widget);
-        var result = findDocumentsFromSources(widgetSources, cfg);
-
-        // Never hide the widget root and never manipulate tabs/rows/columns.
-        widget.hidden = false;
-        widget.removeAttribute("hidden");
+        var result = findDocuments(widget, cfg);
+        list.innerHTML = "";
 
         if (result.documents.length) {
-            renderDocuments(widget, list, cfg, result, null);
-            finishWidget(widget);
-            return;
-        }
-
-        renderEmpty(widget, list, cfg, result, null);
-        finishWidget(widget);
-
-        if (allowAsyncFallback === false || widget.getAttribute("data-ap-pdf-global-scan") === "1") {
-            return;
-        }
-
-        widget.setAttribute("data-ap-pdf-global-scan", "1");
-        findGlobalSourcesAsync(cfg, function (globalInfo) {
-            var currentCfg = readConfig(widget);
-            var allSources = collectWidgetSourceTexts(widget).concat(globalInfo.sources || []);
-            var globalResult = findDocumentsFromSources(allSources, currentCfg);
-            if (globalResult.documents.length) {
-                renderDocuments(widget, list, currentCfg, globalResult, globalInfo);
-            } else {
-                renderEmpty(widget, list, currentCfg, globalResult, globalInfo);
+            widget.classList.remove("ap-pdf-widget-no-documents");
+            widget.classList.add("ap-pdf-widget-has-documents");
+            for (var i = 0; i < result.documents.length; i++) {
+                list.appendChild(makeDocumentLink(result.documents[i]));
             }
-            finishWidget(widget);
-        });
+        } else {
+            widget.classList.remove("ap-pdf-widget-has-documents");
+            widget.classList.add("ap-pdf-widget-no-documents");
+            appendSpacer(list);
+        }
+
+        if (cfg.debugMode) {
+            var debug = document.createElement("div");
+            debug.className = "ap-pdf-widget-debug";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.9.0";
+            list.appendChild(debug);
+        }
+
+        widget.classList.remove("ap-pdf-widget-loading");
+        widget.classList.add("ap-pdf-widget-ready");
+        widget.setAttribute("data-ap-pdf-rendered", "1");
     }
 
     function initWidget(widget) {
         if (!widget || widget.getAttribute("data-ap-pdf-observed") === "1") {
-            renderWidget(widget, true);
+            renderWidget(widget);
             return;
         }
-
         widget.setAttribute("data-ap-pdf-observed", "1");
-        renderWidget(widget, true);
+        renderWidget(widget);
 
         if (typeof MutationObserver !== "undefined") {
             var observer = new MutationObserver(function (mutations) {
                 for (var i = 0; i < mutations.length; i++) {
                     if (mutations[i].attributeName === "data-ap-pdf-properties" || mutations[i].attributeName === "data-ap-pdf-variation-properties") {
-                        widget.removeAttribute("data-ap-pdf-global-scan");
-                        renderWidget(widget, true);
+                        renderWidget(widget);
                         break;
                     }
                 }
@@ -646,7 +440,8 @@
             observer.observe(widget, { attributes: true, attributeFilter: ["data-ap-pdf-properties", "data-ap-pdf-variation-properties"] });
         }
 
-        window.setTimeout(function () { renderWidget(widget, true); }, 150);
+        window.setTimeout(function () { renderWidget(widget); }, 150);
+        window.setTimeout(function () { renderWidget(widget); }, 800);
     }
 
     function init() {

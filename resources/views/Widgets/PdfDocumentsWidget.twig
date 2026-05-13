@@ -1,29 +1,23 @@
 {% set instanceId = "ap-pdf-widget-" ~ random() %}
 {% set documentsConfig = config('AgrarProfiPdfWidget.documents_config')|default('') %}
 {% set publicStorageBase = config('AgrarProfiPdfWidget.public_storage_base')|default('') %}
-{% set hideWhenEmpty = config('AgrarProfiPdfWidget.hide_when_empty')|default('1') %}
 {% set debugMode = config('AgrarProfiPdfWidget.debug_mode')|default('0') %}
-
-<link rel="stylesheet" href="{{ plugin_path('AgrarProfiPdfWidget') }}/css/pdf-widget-v280.css">
 
 <div id="{{ instanceId }}"
      class="ap-pdf-widget ap-pdf-widget-loading"
      data-ap-pdf-widget
      data-documents-config="{{ documentsConfig|e('html_attr') }}"
      data-public-storage-base="{{ publicStorageBase|e('html_attr') }}"
-     data-hide-when-empty="{{ hideWhenEmpty|e('html_attr') }}"
      data-debug-mode="{{ debugMode|e('html_attr') }}"
      :data-ap-pdf-properties="typeof slotProps !== 'undefined' && slotProps.getDataField ? JSON.stringify(slotProps.getDataField('properties') || []) : '[]'"
-     :data-ap-pdf-variation-properties="typeof slotProps !== 'undefined' && slotProps.getDataField ? JSON.stringify(slotProps.getDataField('ids.variationProperties') || []) : '[]'"
-     :data-ap-pdf-variation-id="typeof slotProps !== 'undefined' && slotProps.getDataField ? String(slotProps.getDataField('variation.id') || '') : ''"
-     :data-ap-pdf-item-id="typeof slotProps !== 'undefined' && slotProps.getDataField ? String(slotProps.getDataField('ids.itemId') || '') : ''">
+     :data-ap-pdf-variation-properties="typeof slotProps !== 'undefined' && slotProps.getDataField ? JSON.stringify(slotProps.getDataField('ids.variationProperties') || []) : '[]'">
     <div class="ap-pdf-widget-list" data-ap-pdf-list>
         {% if isPreview %}
             <div class="ap-pdf-widget-placeholder">
                 Im Frontend werden hier die PDF-Dateien aus den konfigurierten Varianten-Eigenschaften angezeigt.
             </div>
+        {% else %}
+            <span class="ap-pdf-empty-spacer" aria-hidden="true">&nbsp;</span>
         {% endif %}
     </div>
 </div>
-
-<script src="{{ plugin_path('AgrarProfiPdfWidget') }}/js/pdf-widget-v280.js" defer></script>
