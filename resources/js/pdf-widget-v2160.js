@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2150__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2160__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -25,9 +25,25 @@
         if (value.indexOf("&") === -1) {
             return value;
         }
+
+        // plentyShop/ShopBuilder can double-encode values inside attributes and
+        // JSON-in-HTML, e.g. https&amp;#x3A;&amp;#x2F;&amp;#x2F;... .
+        // Decode repeatedly until the value is stable. This prevents generated
+        // links like /https&#x3A;&#x2F;&#x2F;... which the browser treats as a shop URL.
         var textarea = document.createElement("textarea");
-        textarea.innerHTML = value;
-        return textarea.value;
+        var current = value;
+        for (var i = 0; i < 5; i++) {
+            if (current.indexOf("&") === -1) {
+                break;
+            }
+            textarea.innerHTML = current;
+            var decoded = textarea.value;
+            if (decoded === current) {
+                break;
+            }
+            current = decoded;
+        }
+        return current;
     }
 
     function decodeUrl(value) {
@@ -95,6 +111,28 @@
     }
 
     var cachedBase = null;
+
+    function getPropertyFileUrlBaseFromPage() {
+        if (!document.documentElement) {
+            return "";
+        }
+
+        var html = normalizeScanText(document.documentElement.innerHTML || "");
+        var patterns = [
+            /"propertyFileUrl"\s*:\s*"([^"]+?\/propertyItems\/?)"/i,
+            /propertyFileUrl\s*:\s*"([^"]+?\/propertyItems\/?)"/i
+        ];
+
+        for (var i = 0; i < patterns.length; i++) {
+            var match = patterns[i].exec(html);
+            if (match && match[1]) {
+                return cleanBaseUrl(decodeUrl(match[1]).replace(/\/propertyItems\/?$/i, ""));
+            }
+        }
+
+        return "";
+    }
+
     function getPublicStorageBase(configuredBase, rawUrl) {
         var configured = cleanBaseUrl(configuredBase || "");
         if (configured) {
@@ -108,11 +146,20 @@
             return cachedBase;
         }
 
+        // Live mode can expose the public file base only in the Ceres page data,
+        // not in the widget config. Example:
+        // "propertyFileUrl":"https://cdn03.plentymarkets.com/<shop>/propertyItems/"
+        var fromPageConfig = getPropertyFileUrlBaseFromPage();
+        if (fromPageConfig) {
+            cachedBase = fromPageConfig;
+            return cachedBase;
+        }
+
         var nodes = document.querySelectorAll("link[href], script[src]");
         for (var i = 0; i < nodes.length; i++) {
-            var href = nodes[i].href || nodes[i].src || "";
+            var href = decodeUrl(nodes[i].href || nodes[i].src || "");
             var base = extractPublicBaseFromUrl(href);
-            if (base && (href.indexOf("plentymarkets-public") !== -1 || href.indexOf("amazonaws.com") !== -1)) {
+            if (base && (href.indexOf("plentymarkets-public") !== -1 || href.indexOf("amazonaws.com") !== -1 || href.indexOf("cdn") !== -1)) {
                 cachedBase = base;
                 return cachedBase;
             }
@@ -135,8 +182,21 @@
             // file values into https://shop-domain/propertyItems/..., which returns 404.
             var configured = cleanBaseUrl(configuredBase || "");
             var propertyItemsAbsolute = raw.match(/^https?:\/\/[^/]+\/propertyItems\/(\d+\/[^?#"'<>]+\.pdf(?:[?#][^"'<>]*)?)$/i);
-            if (propertyItemsAbsolute && configured) {
-                return configured + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
+            if (propertyItemsAbsolute) {
+                if (configured) {
+                    return configured + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
+                }
+                if (base) {
+                    try {
+                        var rawUrlObj = new URL(raw);
+                        var baseUrlObj = new URL(base);
+                        if (rawUrlObj.hostname === window.location.hostname || rawUrlObj.hostname !== baseUrlObj.hostname) {
+                            return base + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
+                        }
+                    } catch (ignore) {
+                        return base + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
+                    }
+                }
             }
             if (raw.indexOf("/propertyItems/") > -1) {
                 return raw;
@@ -671,7 +731,7 @@
         if (cfg.debugMode) {
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.15.0";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.16.0";
             list.appendChild(debug);
         }
 
