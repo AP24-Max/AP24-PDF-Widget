@@ -1,12 +1,10 @@
-# AgrarProfiPdfWidget 2.12.0
+# AgrarProfiPdfWidget 2.13.0
 
-ShopBuilder-Widget für PDF-Dokumente aus plentyONE Varianten-Eigenschaften vom Typ `Datei`.
+ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ **Datei**.
 
-## Nutzung
+## Konfiguration
 
-Im ShopBuilder einen festen Tab anlegen, z. B. `Datenblätter/Anleitungen`, und dieses Widget in den Tab ziehen.
-
-Im Plugin unter `PDF-Widget` pro Dokument eine Zeile pflegen:
+Im Feld **PDF-Dokumente / Eigenschaften** wird pro PDF eine Zeile gepflegt:
 
 ```text
 Eigenschaft-ID|Titel|Linktext
@@ -17,30 +15,29 @@ Beispiel:
 ```text
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen
 1935|Datenblatt|Datenblatt öffnen
+2040|Ersatzteilliste|Ersatzteilliste öffnen
 ```
 
-Optional kann ein Eigenschaftsname als vierter Wert angegeben werden:
+Optional kann als vierter Wert ein Eigenschaftsname als Fallback ergänzt werden:
 
 ```text
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen|PDF Anleitung
 ```
 
-## Version 2.12.0
+## Darstellung
 
-Verbesserter Parser für mehrere plenty Datei-Eigenschaften im gerenderten `variationProperties`-JSON. Er erkennt jetzt gezielt Blöcke mit `propertyId` und `values.value`, z. B.:
+Die Kachelgröße und Anzahl pro Zeile sind konfigurierbar:
 
-```json
-"propertyId":1935,
-"values":{"id":192670,"value":"192670/Scharmueller-(36).pdf"}
-```
+- `Kacheln pro Zeile Desktop`, Standard: `4`
+- `Kacheln pro Zeile Tablet`, Standard: `2`
+- `Kacheln pro Zeile Mobil`, Standard: `1`
+- `Kachelgröße`, Standard: `compact`; möglich: `compact`, `normal`, `large`
 
-Daraus wird automatisch eine öffentliche `propertyItems`-URL zusammengesetzt.
+Das Widget erzeugt keine Tabs und blendet keine ShopBuilder-Struktur aus. Der Tab **Datenblätter/Anleitungen** wird fest im ShopBuilder angelegt.
 
 ## Container-Verknüpfungen
 
-Für Styles und Script müssen diese Container gesetzt sein:
+Zusätzlich zum ShopBuilder-Widget bitte diese Container setzen:
 
 - `PDF-Widget: Styles` → `Ceres::SingleItem.Styles`
 - `PDF-Widget: Script` → `Ceres::SingleItem.AfterScriptsLoaded`
-
-Das Widget erzeugt keinen Tab und blendet keinen Tab aus.

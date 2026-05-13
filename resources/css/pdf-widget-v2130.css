@@ -1,0 +1,211 @@
+/* AgrarProfiPdfWidget v2.13.0
+   Scope is intentionally limited to the widget itself. No ShopBuilder rows,
+   columns, tabs or parent containers are targeted. */
+.ap-pdf-widget,
+.ap-pdf-widget * {
+    box-sizing: border-box;
+}
+
+.ap-pdf-widget {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    float: none;
+    clear: none;
+    overflow: visible;
+    --ap-pdf-columns-desktop: 4;
+    --ap-pdf-columns-tablet: 2;
+    --ap-pdf-columns-mobile: 1;
+    --ap-pdf-gap: 12px;
+    --ap-pdf-padding-y: 14px;
+    --ap-pdf-padding-x: 14px;
+    --ap-pdf-icon-width: 42px;
+    --ap-pdf-icon-height: 54px;
+    --ap-pdf-icon-border: 3px;
+    --ap-pdf-icon-font-size: 15px;
+    --ap-pdf-title-size: 15px;
+    --ap-pdf-subtitle-size: 13px;
+    --ap-pdf-card-gap: 12px;
+}
+
+.ap-pdf-widget-list {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.ap-pdf-widget.ap-pdf-widget-has-documents {
+    margin: 14px 0;
+}
+
+.ap-pdf-widget.ap-pdf-widget-has-documents .ap-pdf-widget-list {
+    display: grid;
+    grid-template-columns: repeat(var(--ap-pdf-columns-desktop), minmax(0, 1fr));
+    gap: var(--ap-pdf-gap);
+    align-items: stretch;
+}
+
+.ap-pdf-widget.ap-pdf-size-normal {
+    --ap-pdf-gap: 16px;
+    --ap-pdf-padding-y: 18px;
+    --ap-pdf-padding-x: 18px;
+    --ap-pdf-icon-width: 50px;
+    --ap-pdf-icon-height: 64px;
+    --ap-pdf-icon-border: 3px;
+    --ap-pdf-icon-font-size: 16px;
+    --ap-pdf-title-size: 17px;
+    --ap-pdf-subtitle-size: 14px;
+    --ap-pdf-card-gap: 14px;
+}
+
+.ap-pdf-widget.ap-pdf-size-large {
+    --ap-pdf-gap: 18px;
+    --ap-pdf-padding-y: 22px;
+    --ap-pdf-padding-x: 24px;
+    --ap-pdf-icon-width: 58px;
+    --ap-pdf-icon-height: 74px;
+    --ap-pdf-icon-border: 4px;
+    --ap-pdf-icon-font-size: 17px;
+    --ap-pdf-title-size: 18px;
+    --ap-pdf-subtitle-size: 15px;
+    --ap-pdf-card-gap: 18px;
+}
+
+.ap-pdf-empty-spacer {
+    display: inline-block;
+    width: 1px;
+    height: 1px;
+    min-width: 1px;
+    min-height: 1px;
+    max-width: 1px;
+    max-height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    vertical-align: top;
+    font-size: 0;
+    line-height: 0;
+}
+
+.ap-pdf-document-link {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 92px;
+    gap: var(--ap-pdf-card-gap);
+    padding: var(--ap-pdf-padding-y) var(--ap-pdf-padding-x);
+    border: 1px solid #d7d7d7;
+    border-radius: 7px;
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+    transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+.ap-pdf-widget.ap-pdf-size-normal .ap-pdf-document-link {
+    min-height: 112px;
+}
+
+.ap-pdf-widget.ap-pdf-size-large .ap-pdf-document-link {
+    min-height: 132px;
+}
+
+.ap-pdf-document-link:hover,
+.ap-pdf-document-link:focus {
+    color: #333;
+    text-decoration: none;
+    border-color: #6baa2c;
+    box-shadow: 0 3px 12px rgba(0,0,0,.08);
+}
+
+.ap-pdf-document-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ap-pdf-icon-width);
+    height: var(--ap-pdf-icon-height);
+    padding-bottom: 8px;
+    border: var(--ap-pdf-icon-border) solid #6baa2c;
+    color: #6baa2c;
+    font-weight: 700;
+    font-size: var(--ap-pdf-icon-font-size);
+    line-height: 1;
+    background: #fff;
+}
+
+.ap-pdf-document-icon::after {
+    content: "";
+    position: absolute;
+    right: calc(var(--ap-pdf-icon-border) * -1);
+    top: calc(var(--ap-pdf-icon-border) * -1);
+    width: calc(var(--ap-pdf-icon-width) * .34);
+    height: calc(var(--ap-pdf-icon-width) * .34);
+    background: linear-gradient(135deg, #fff 0%, #fff 48%, #e8f4db 50%, #e8f4db 100%);
+    border-left: var(--ap-pdf-icon-border) solid #6baa2c;
+    border-bottom: var(--ap-pdf-icon-border) solid #6baa2c;
+}
+
+.ap-pdf-document-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.ap-pdf-document-title {
+    display: block;
+    font-weight: 700;
+    font-size: var(--ap-pdf-title-size);
+    color: #222;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.ap-pdf-document-subtitle {
+    display: block;
+    font-size: var(--ap-pdf-subtitle-size);
+    color: #555;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.ap-pdf-widget-placeholder {
+    color: #666;
+}
+
+.ap-pdf-widget-debug {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px dashed #6baa2c;
+    background: #f7fbf2;
+    color: #333;
+    font-size: 13px;
+}
+
+@media (max-width: 991.98px) {
+    .ap-pdf-widget.ap-pdf-widget-has-documents .ap-pdf-widget-list {
+        grid-template-columns: repeat(var(--ap-pdf-columns-tablet), minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ap-pdf-widget.ap-pdf-widget-has-documents .ap-pdf-widget-list {
+        grid-template-columns: repeat(var(--ap-pdf-columns-mobile), minmax(0, 1fr));
+    }
+
+    .ap-pdf-document-link {
+        min-height: 0;
+    }
+}

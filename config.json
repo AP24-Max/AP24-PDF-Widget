@@ -19,6 +19,42 @@
     },
     {
         "tab": "PDF-Widget",
+        "key": "columns_desktop",
+        "label": "Kacheln pro Zeile Desktop",
+        "type": "text",
+        "default": "4",
+        "possibleValues": [],
+        "description": "Anzahl der PDF-Kacheln pro Zeile auf großen Bildschirmen. Empfohlen: 4. Erlaubt: 1 bis 6."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "columns_tablet",
+        "label": "Kacheln pro Zeile Tablet",
+        "type": "text",
+        "default": "2",
+        "possibleValues": [],
+        "description": "Anzahl der PDF-Kacheln pro Zeile auf mittleren Bildschirmen. Empfohlen: 2. Erlaubt: 1 bis 4."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "columns_mobile",
+        "label": "Kacheln pro Zeile Mobil",
+        "type": "text",
+        "default": "1",
+        "possibleValues": [],
+        "description": "Anzahl der PDF-Kacheln pro Zeile auf Smartphones. Empfohlen: 1. Erlaubt: 1 oder 2."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "tile_size",
+        "label": "Kachelgröße",
+        "type": "text",
+        "default": "compact",
+        "possibleValues": [],
+        "description": "compact = kleine Kacheln, normal = mittlere Kacheln, large = große Kacheln. Alternativ werden auch klein/kompakt/groß akzeptiert."
+    },
+    {
+        "tab": "PDF-Widget",
         "key": "debug_mode",
         "label": "Debug-Modus aktivieren",
         "type": "checkbox",
