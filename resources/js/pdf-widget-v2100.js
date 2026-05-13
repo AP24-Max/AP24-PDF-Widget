@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V290__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2100__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -227,6 +227,14 @@
         if (!isPdfUrl(rawUrl) || !contextMatchesDocument(context, docConfig)) {
             return;
         }
+        addCandidateForDocument(out, rawUrl, docConfig, configuredBase);
+    }
+
+    function addCandidateForDocument(out, rawUrl, docConfig, configuredBase) {
+        rawUrl = toStringValue(rawUrl).replace(/\\\//g, "/");
+        if (!isPdfUrl(rawUrl)) {
+            return;
+        }
         var url = normalizeUrl(rawUrl, configuredBase);
         if (!isPdfUrl(url)) {
             return;
@@ -239,12 +247,59 @@
         });
     }
 
+    function escapeRegExp(value) {
+        return toStringValue(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function addMarkersForNeedle(markers, text, needle, docConfig) {
+        needle = decodeHtml(toStringValue(needle)).trim();
+        if (!needle) {
+            return;
+        }
+        var re = new RegExp(escapeRegExp(needle), "ig");
+        var match;
+        while ((match = re.exec(text)) !== null) {
+            markers.push({ index: match.index, doc: docConfig });
+            if (re.lastIndex === match.index) {
+                re.lastIndex++;
+            }
+        }
+    }
+
+    function buildDocumentMarkers(text, cfg) {
+        var markers = [];
+        for (var i = 0; i < cfg.documents.length; i++) {
+            addMarkersForNeedle(markers, text, cfg.documents[i].id, cfg.documents[i]);
+            addMarkersForNeedle(markers, text, cfg.documents[i].propertyName, cfg.documents[i]);
+        }
+        return markers;
+    }
+
+    function findNearestDocument(markers, index, maxDistance) {
+        var best = null;
+        var bestDistance = maxDistance + 1;
+        for (var i = 0; i < markers.length; i++) {
+            var distance = Math.abs(markers[i].index - index);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = markers[i].doc;
+            }
+        }
+        return bestDistance <= maxDistance ? best : null;
+    }
+
     function extractPdfCandidatesFromText(text, out, cfg) {
         text = decodeHtml(toStringValue(text));
         if (text.indexOf(".pdf") === -1 || !cfg.documents.length) {
             return;
         }
         text = text.replace(/\\\//g, "/");
+
+        var markers = buildDocumentMarkers(text, cfg);
+        if (!markers.length) {
+            return;
+        }
+
         var patterns = [
             /https?:\/\/[^\s"'<>\\]+\.pdf(?:[?#][^\s"'<>\\]*)?/ig,
             /propertyItems\/\d+\/[^\s"'<>\\]+\.pdf(?:[?#][^\s"'<>\\]*)?/ig,
@@ -256,8 +311,14 @@
             var match;
             while ((match = re.exec(text)) !== null) {
                 var raw = toStringValue(match[0]).replace(/^[\s"'=:(,]+/, "");
-                var start = Math.max(0, match.index - 900);
-                var end = Math.min(text.length, match.index + raw.length + 900);
+                var nearest = findNearestDocument(markers, match.index, 12000);
+                if (nearest) {
+                    addCandidateForDocument(out, raw, nearest, cfg.publicStorageBase);
+                    continue;
+                }
+
+                var start = Math.max(0, match.index - 1500);
+                var end = Math.min(text.length, match.index + raw.length + 1500);
                 var context = text.substring(start, end);
                 for (var d = 0; d < cfg.documents.length; d++) {
                     addCandidate(out, raw, context, cfg.documents[d], cfg.publicStorageBase);
@@ -285,6 +346,23 @@
                     sources.push(text);
                 }
             }
+        }
+        return sources;
+    }
+
+    function collectPageSourceTexts(cfg) {
+        var sources = [];
+        if (!cfg.documents.length || !document.documentElement) {
+            return sources;
+        }
+
+        // Primary fallback for ShopBuilder: in some plentyShop layouts slotProps does not
+        // expose variant properties to the widget, but the current item JSON is still
+        // present in the rendered page source. This is a plain string scan, not the old
+        // recursive window.ceresStore scan, so it does not block the page.
+        var html = document.documentElement.innerHTML || "";
+        if (html.indexOf(".pdf") !== -1 && (html.indexOf("propertyItems") !== -1 || html.indexOf("valueFile") !== -1)) {
+            sources.push(html);
         }
         return sources;
     }
@@ -334,6 +412,10 @@
     function findDocuments(widget, cfg) {
         var candidates = [];
         var sources = collectWidgetSourceTexts(widget);
+        var pageSources = collectPageSourceTexts(cfg);
+        for (var p = 0; p < pageSources.length; p++) {
+            sources.push(pageSources[p]);
+        }
         for (var i = 0; i < sources.length; i++) {
             extractPdfCandidatesFromText(sources[i], candidates, cfg);
         }
@@ -411,7 +493,7 @@
         if (cfg.debugMode) {
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.9.0";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.10.0";
             list.appendChild(debug);
         }
 

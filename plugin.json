@@ -4,7 +4,7 @@
     "description": "ShopBuilder-Widget für beliebig viele PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei. Der Reiter bleibt fest im ShopBuilder; das Widget erzeugt nur PDF-Kacheln und greift nicht in die ShopBuilder-Struktur ein. Assets werden außerhalb des Tab-Inhalts über Ceres-Container geladen.",
     "author": "Agrar-Profi24",
     "type": "template",
-    "version": "2.9.0",
+    "version": "2.10.0",
     "serviceProvider": "AgrarProfiPdfWidget\\Providers\\AgrarProfiPdfWidgetServiceProvider",
     "keywords": [
         "plentyShop LTS",

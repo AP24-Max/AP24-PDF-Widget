@@ -1,4 +1,4 @@
-# AgrarProfiPdfWidget 2.9.0
+# AgrarProfiPdfWidget 2.10.0
 
 ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
 
@@ -6,7 +6,7 @@ ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
 
 Der Tab `Datenblatt/Anleitungen` wird fest im ShopBuilder angelegt. Dieses Plugin erzeugt keinen Tab und blendet keinen Tab aus. Das Widget erzeugt ausschließlich die PDF-Kacheln innerhalb des vorhandenen ShopBuilder-Tabs.
 
-## Wichtig in Version 2.9.0
+## Wichtig in Version 2.10.0
 
 Die CSS- und JavaScript-Dateien werden nicht mehr direkt im Widget-HTML ausgegeben. Stattdessen werden sie über Ceres-Container geladen:
 
