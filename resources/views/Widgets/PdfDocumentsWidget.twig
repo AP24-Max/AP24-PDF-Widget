@@ -6,6 +6,9 @@
 {% set columnsDesktop = config('AgrarProfiPdfWidget.columns_desktop')|default('4') %}
 {% set columnsTablet = config('AgrarProfiPdfWidget.columns_tablet')|default('2') %}
 {% set columnsMobile = config('AgrarProfiPdfWidget.columns_mobile')|default('1') %}
+{% set titleFontSize = config('AgrarProfiPdfWidget.title_font_size')|default('') %}
+{% set subtitleFontSize = config('AgrarProfiPdfWidget.subtitle_font_size')|default('') %}
+{% set iconFontSize = config('AgrarProfiPdfWidget.icon_font_size')|default('') %}
 
 <div id="{{ instanceId }}"
      class="ap-pdf-widget ap-pdf-widget-loading"
@@ -17,6 +20,9 @@
      data-columns-desktop="{{ columnsDesktop|e('html_attr') }}"
      data-columns-tablet="{{ columnsTablet|e('html_attr') }}"
      data-columns-mobile="{{ columnsMobile|e('html_attr') }}"
+     data-title-font-size="{{ titleFontSize|e('html_attr') }}"
+     data-subtitle-font-size="{{ subtitleFontSize|e('html_attr') }}"
+     data-icon-font-size="{{ iconFontSize|e('html_attr') }}"
      :data-ap-pdf-properties="typeof slotProps !== 'undefined' && slotProps.getDataField ? JSON.stringify(slotProps.getDataField('properties') || []) : '[]'"
      :data-ap-pdf-variation-properties="typeof slotProps !== 'undefined' && slotProps.getDataField ? JSON.stringify(slotProps.getDataField('ids.variationProperties') || []) : '[]'">
     <div class="ap-pdf-widget-list" data-ap-pdf-list>

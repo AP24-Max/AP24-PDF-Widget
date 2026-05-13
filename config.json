@@ -55,6 +55,33 @@
     },
     {
         "tab": "PDF-Widget",
+        "key": "title_font_size",
+        "label": "Schriftgröße Titel",
+        "type": "text",
+        "default": "",
+        "possibleValues": [],
+        "description": "Optional. Schriftgröße für den fetten Titel in der PDF-Kachel. Leer lassen = passend zur Kachelgröße. Beispiele: 14px, 15px, 1rem. Reine Zahlen werden als px interpretiert."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "subtitle_font_size",
+        "label": "Schriftgröße Linktext",
+        "type": "text",
+        "default": "",
+        "possibleValues": [],
+        "description": "Optional. Schriftgröße für den Linktext unter dem Titel. Leer lassen = passend zur Kachelgröße. Beispiele: 12px, 13px, 0.9rem. Reine Zahlen werden als px interpretiert."
+    },
+    {
+        "tab": "PDF-Widget",
+        "key": "icon_font_size",
+        "label": "Schriftgröße PDF-Icon",
+        "type": "text",
+        "default": "",
+        "possibleValues": [],
+        "description": "Optional. Schriftgröße für den Text PDF im Icon. Leer lassen = passend zur Kachelgröße. Beispiele: 13px, 14px, 0.9rem. Reine Zahlen werden als px interpretiert."
+    },
+    {
+        "tab": "PDF-Widget",
         "key": "debug_mode",
         "label": "Debug-Modus aktivieren",
         "type": "checkbox",

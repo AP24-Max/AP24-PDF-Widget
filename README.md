@@ -1,4 +1,4 @@
-# AgrarProfiPdfWidget 2.13.0
+# AgrarProfiPdfWidget 2.14.0
 
 ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ **Datei**.
 
@@ -32,6 +32,9 @@ Die Kachelgröße und Anzahl pro Zeile sind konfigurierbar:
 - `Kacheln pro Zeile Tablet`, Standard: `2`
 - `Kacheln pro Zeile Mobil`, Standard: `1`
 - `Kachelgröße`, Standard: `compact`; möglich: `compact`, `normal`, `large`
+- `Schriftgröße Titel`, optional, z. B. `14px`
+- `Schriftgröße Linktext`, optional, z. B. `12px`
+- `Schriftgröße PDF-Icon`, optional, z. B. `13px`
 
 Das Widget erzeugt keine Tabs und blendet keine ShopBuilder-Struktur aus. Der Tab **Datenblätter/Anleitungen** wird fest im ShopBuilder angelegt.
 

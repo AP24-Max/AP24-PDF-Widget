@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2130__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2140__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -242,6 +242,20 @@
         return "normal";
     }
 
+    function normalizeCssSize(value) {
+        value = lower(value).trim().replace(',', '.');
+        if (!value) {
+            return "";
+        }
+        if (/^\d+(?:\.\d+)?$/.test(value)) {
+            return value + "px";
+        }
+        if (/^\d+(?:\.\d+)?(?:px|rem|em|%)$/.test(value)) {
+            return value;
+        }
+        return "";
+    }
+
     function readConfig(widget) {
         return {
             documents: parseDocumentConfig(widget.getAttribute("data-documents-config") || ""),
@@ -250,7 +264,10 @@
             columnsDesktop: clampInt(widget.getAttribute("data-columns-desktop"), 4, 1, 6),
             columnsTablet: clampInt(widget.getAttribute("data-columns-tablet"), 2, 1, 4),
             columnsMobile: clampInt(widget.getAttribute("data-columns-mobile"), 1, 1, 2),
-            tileSize: normalizeTileSize(widget.getAttribute("data-tile-size"))
+            tileSize: normalizeTileSize(widget.getAttribute("data-tile-size")),
+            titleFontSize: normalizeCssSize(widget.getAttribute("data-title-font-size")),
+            subtitleFontSize: normalizeCssSize(widget.getAttribute("data-subtitle-font-size")),
+            iconFontSize: normalizeCssSize(widget.getAttribute("data-icon-font-size"))
         };
     }
 
@@ -260,6 +277,15 @@
         widget.style.setProperty("--ap-pdf-columns-mobile", String(cfg.columnsMobile));
         widget.classList.remove("ap-pdf-size-compact", "ap-pdf-size-normal", "ap-pdf-size-large");
         widget.classList.add("ap-pdf-size-" + cfg.tileSize);
+        if (cfg.titleFontSize) {
+            widget.style.setProperty("--ap-pdf-title-size", cfg.titleFontSize);
+        }
+        if (cfg.subtitleFontSize) {
+            widget.style.setProperty("--ap-pdf-subtitle-size", cfg.subtitleFontSize);
+        }
+        if (cfg.iconFontSize) {
+            widget.style.setProperty("--ap-pdf-icon-font-size", cfg.iconFontSize);
+        }
     }
 
     function contextMatchesDocument(context, docConfig) {
@@ -637,7 +663,7 @@
         if (cfg.debugMode) {
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.13.0";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.14.0";
             list.appendChild(debug);
         }
 
