@@ -111,9 +111,6 @@
     display: none !important;
 }
 
-.ap-pdf-tab-title-hidden {
-    display: none !important;
-}
 
 @media (max-width: 575.98px) {
     .ap-pdf-widget-list {

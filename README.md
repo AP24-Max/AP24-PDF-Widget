@@ -1,38 +1,41 @@
-# AgrarProfiPdfWidget 2.4.0
+# AgrarProfiPdfWidget 2.6.0
 
-Reines ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
+Reines ShopBuilder-Widget für beliebig viele PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
 
-## Wichtig
+## Grundprinzip
 
-Dieses Plugin erzeugt keine Tabs automatisch und registriert keine Container-Ausgabe. Es wird erst sichtbar, wenn das Widget im ShopBuilder platziert wird.
+Der ShopBuilder-Reiter wird nicht vom Plugin erzeugt oder ausgeblendet. Lege im ShopBuilder den Reiter z. B. `Datenblatt/Anleitungen` fest an und platziere darin dieses Widget.
 
-Empfohlener Einsatz:
+Wenn beim Artikel keine passende Datei-Eigenschaft gepflegt ist, bleibt die Widget-Ausgabe leer.
 
-1. Altes Plugin `AgrarProfiPdfTabs` aus dem Plugin-Set entfernen oder vollständig deaktivieren.
-2. Plugin-Set bereitstellen.
-3. Dieses Plugin `AgrarProfiPdfWidget` installieren und bereitstellen.
-4. Im Plugin die Eigenschafts-IDs für Anleitung und Datenblatt eintragen.
-5. Im ShopBuilder im gewünschten Artikel-Tab das Widget `PDF-Dokumente aus Artikel-Eigenschaften` platzieren.
+## Konfiguration
 
-## Neu in 2.4.0
+Im Feld `PDF-Dokumente / Eigenschaften` wird pro gewünschtem PDF-Button eine Zeile gepflegt:
 
-- Optionales Ausblenden des übergeordneten ShopBuilder-/Tab-Reiters, wenn keine PDFs gefunden werden.
-- Neuer JS-/CSS-Dateiname zur Cache-Trennung.
-- Das Widget durchsucht nur den aktuellen Ceres-Artikelzustand und keine globalen Inline-Skripte mehr. Dadurch werden keine PDF-Links von anderen Artikeln übernommen.
+```text
+Eigenschaft-ID|Titel|Linktext
+```
 
-## Hinweise
+Beispiel:
 
-- Das Widget sucht nur nach PDFs, die im aktuellen Frontend-Artikeldatensatz mit den konfigurierten Eigenschaften zusammenhängen.
-- Wenn keine PDFs gefunden werden, blendet sich das Widget aus. Ist die Option aktiviert, wird zusätzlich der umgebende Tab-Reiter ausgeblendet.
+```text
+1934|Bedienungsanleitung|Bedienungsanleitung öffnen
+1935|Datenblatt|Datenblatt öffnen
+```
 
+Optional kann als vierter Wert ein Eigenschaftsname als Fallback eingetragen werden:
 
-## Version 2.4.0
+```text
+1934|Bedienungsanleitung|Bedienungsanleitung öffnen|PDF Anleitung
+```
 
-- Widget zusätzlich über den aktuellen ShopBuilder `ContentWidgetRepositoryContract` registriert.
-- `contentWidgets.json` bleibt als Fallback für ältere plentyShop-LTS-Systeme enthalten.
-- Keine Container-Ausgabe und kein automatisches Frontend-Script außerhalb des Widgets.
+Der Eigenschaftsname ist normalerweise nicht nötig, wenn die Eigenschafts-ID im Frontend-Datensatz enthalten ist. Er dient nur als Fallback.
 
+## Version 2.6.0
 
-## Version 2.4.0
-
-Layout-sichere Version: Das Widget blendet bei fehlenden PDFs nur sich selbst und optional den Tab-Kopf aus. Es verändert keine ShopBuilder-Container, Tab-Panes, Rows oder Spalten mehr. Zusätzlich werden Inline-Script-Daten und gezielte Ceres-Datenquellen auf PDF-Eigenschaften geprüft.
+- Beliebig viele PDF-Kacheln über eine Konfigurationsliste.
+- Keine festen Felder mehr für Bedienungsanleitung/Datenblatt.
+- Keine Tab-Erzeugung und keine Tab-Ausblendung.
+- Keine Manipulation von ShopBuilder-Containern, Rows oder Spalten.
+- PDF-Dateien werden weiterhin aus Datei-Eigenschaften ausgelesen.
+- Relative plenty-Dateipfade werden weiterhin auf die öffentliche Datei-URL normalisiert.

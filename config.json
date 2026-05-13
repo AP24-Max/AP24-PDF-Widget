@@ -1,75 +1,12 @@
 [
     {
         "tab": "PDF-Widget",
-        "key": "manual_property_id",
-        "label": "Eigenschaft-ID für Bedienungsanleitung",
-        "type": "text",
-        "default": "",
+        "key": "documents_config",
+        "label": "PDF-Dokumente / Eigenschaften",
+        "type": "textarea",
+        "default": "1934|Bedienungsanleitung|Bedienungsanleitung öffnen\n1935|Datenblatt|Datenblatt öffnen",
         "possibleValues": [],
-        "description": "ID der Varianten-Eigenschaft vom Typ Datei für die Bedienungsanleitung. Wichtig für die exakte Erkennung."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "datasheet_property_id",
-        "label": "Eigenschaft-ID für Datenblatt",
-        "type": "text",
-        "default": "",
-        "possibleValues": [],
-        "description": "ID der Varianten-Eigenschaft vom Typ Datei für das Datenblatt. Wichtig für die exakte Erkennung."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "manual_property_name",
-        "label": "Eigenschaftsname Bedienungsanleitung",
-        "type": "text",
-        "default": "PDF Anleitung",
-        "possibleValues": [],
-        "description": "Fallback-Erkennung anhand des Eigenschaftsnamens, falls die ID im Frontend-Datensatz nicht enthalten ist."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "datasheet_property_name",
-        "label": "Eigenschaftsname Datenblatt",
-        "type": "text",
-        "default": "PDF Datenblatt",
-        "possibleValues": [],
-        "description": "Fallback-Erkennung anhand des Eigenschaftsnamens, falls die ID im Frontend-Datensatz nicht enthalten ist."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "manual_title",
-        "label": "Titel Bedienungsanleitung",
-        "type": "text",
-        "default": "Bedienungsanleitung",
-        "possibleValues": [],
-        "description": "Titel auf der PDF-Kachel."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "datasheet_title",
-        "label": "Titel Datenblatt",
-        "type": "text",
-        "default": "Datenblatt",
-        "possibleValues": [],
-        "description": "Titel auf der PDF-Kachel."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "manual_link_label",
-        "label": "Linktext Bedienungsanleitung",
-        "type": "text",
-        "default": "Bedienungsanleitung öffnen",
-        "possibleValues": [],
-        "description": "Untertitel auf der PDF-Kachel."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "datasheet_link_label",
-        "label": "Linktext Datenblatt",
-        "type": "text",
-        "default": "Datenblatt öffnen",
-        "possibleValues": [],
-        "description": "Untertitel auf der PDF-Kachel."
+        "description": "Eine Zeile pro PDF-Kachel im Format: Eigenschaft-ID|Titel|Linktext. Beispiel: 1934|Bedienungsanleitung|Bedienungsanleitung öffnen. Optional kann als 4. Wert ein Eigenschaftsname als Fallback ergänzt werden: 1934|Bedienungsanleitung|Bedienungsanleitung öffnen|PDF Anleitung. Trennzeichen: | oder ;"
     },
     {
         "tab": "PDF-Widget",
@@ -87,16 +24,7 @@
         "type": "checkbox",
         "default": "1",
         "possibleValues": [],
-        "description": "Empfohlen: aktiv lassen. Der ShopBuilder-Reiter selbst bleibt sichtbar, wenn er statisch im Layout angelegt wurde."
-    },
-    {
-        "tab": "PDF-Widget",
-        "key": "hide_tab_when_empty",
-        "label": "ShopBuilder-Reiter ausblenden, wenn keine PDF gefunden wird",
-        "type": "checkbox",
-        "default": "1",
-        "possibleValues": [],
-        "description": "Blendet den übergeordneten Tab/Reiter aus, wenn das Widget im Reiter liegt und keine PDF-Dateien für den Artikel gefunden wurden."
+        "description": "Empfohlen: aktiv lassen. Der ShopBuilder-Reiter bleibt dauerhaft sichtbar; nur die Widget-Ausgabe bleibt leer."
     },
     {
         "tab": "PDF-Widget",
