@@ -1,39 +1,28 @@
-# AgrarProfiPdfWidget 2.7.0
+# AgrarProfiPdfWidget 2.8.0
 
-Reines ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ **Datei**.
+Reines ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei.
 
-## Verwendung
+## Prinzip
 
-Im ShopBuilder den Tab **Datenblatt/Anleitungen** fest anlegen und dieses Widget in den Tab legen.
-Das Plugin erzeugt keine Tabs und blendet keine Tabs aus.
+Der Reiter `Datenblatt/Anleitungen` wird fest im ShopBuilder angelegt. Dieses Plugin erzeugt und versteckt keinen Reiter.
+Das Widget gibt nur PDF-Kacheln aus. Wenn keine passenden PDF-Dateien gefunden werden, bleibt die Ausgabe leer und layoutstabil.
 
 ## Konfiguration
 
-Im Feld **PDF-Dokumente / Eigenschaften** eine Zeile je PDF-Kachel pflegen:
+Eine Zeile pro Dokument:
 
-```text
-Eigenschaft-ID|Titel|Linktext
 ```
-
-Beispiel:
-
-```text
+Eigenschaft-ID|Titel|Linktext
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen
 1935|Datenblatt|Datenblatt öffnen
-2040|Explosionszeichnung|Explosionszeichnung öffnen
 ```
 
-Optional kann als vierter Wert ein Eigenschaftsname als Fallback ergänzt werden:
+Optional als 4. Wert ein Eigenschaftsname als Fallback:
 
-```text
+```
 1934|Bedienungsanleitung|Bedienungsanleitung öffnen|PDF Anleitung
 ```
 
-## Änderung in 2.7.0
+## ShopBuilder
 
-Diese Version ist layout-sicherer für ShopBuilder-Tabs:
-
-- kein `hidden`-Attribut mehr auf dem Widget-Root
-- keine Manipulation von Tabs, Rows, Spalten oder Content-Containern
-- bei fehlenden PDF-Dateien wird nur das Widget auf 0 Höhe gesetzt
-- neue Cache-Dateien: `pdf-widget-v270.js` und `pdf-widget-v270.css`
+Widget in den fest angelegten Reiter `Datenblatt/Anleitungen` ziehen.

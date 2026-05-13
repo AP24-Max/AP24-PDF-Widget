@@ -12,31 +12,19 @@
     padding: 0;
     border: 0;
     float: none;
-    clear: none;
+    clear: both;
     overflow: visible;
 }
 
-.ap-pdf-widget-ready:not(.ap-pdf-widget-empty) {
+.ap-pdf-widget-ready.ap-pdf-widget-has-documents {
     margin: 18px 0;
 }
 
-.ap-pdf-widget-empty {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-}
-
-.ap-pdf-widget-empty .ap-pdf-widget-list {
-    display: none !important;
+.ap-pdf-widget-no-documents {
+    min-height: 1px;
+    height: auto;
+    margin: 0;
+    padding: 0;
 }
 
 .ap-pdf-widget-list {
@@ -46,6 +34,28 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
+}
+
+.ap-pdf-widget-no-documents .ap-pdf-widget-list {
+    display: block;
+    height: 1px;
+    min-height: 1px;
+    max-height: 1px;
+    overflow: hidden;
+}
+
+.ap-pdf-empty-spacer {
+    display: block;
+    width: 1px;
+    height: 1px;
+    min-height: 1px;
+    max-height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-size: 0;
+    line-height: 0;
 }
 
 .ap-pdf-document-link {

@@ -24,7 +24,7 @@
         "type": "checkbox",
         "default": "1",
         "possibleValues": [],
-        "description": "Empfohlen: aktiv lassen. Der ShopBuilder-Reiter bleibt dauerhaft sichtbar; nur die Widget-Ausgabe bleibt leer."
+        "description": "Der ShopBuilder-Reiter bleibt immer sichtbar. Bei aktivierter Option bleibt nur die Widget-Ausgabe leer, ohne Container oder Reiter auszublenden."
     },
     {
         "tab": "PDF-Widget",

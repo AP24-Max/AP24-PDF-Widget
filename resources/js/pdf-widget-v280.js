@@ -1,7 +1,10 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V270__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V280__";
+    var CACHE_BY_URL = {};
+    var PENDING_CALLBACKS_BY_URL = {};
+
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -163,10 +166,7 @@
     }
 
     function splitConfigLine(line) {
-        if (line.indexOf("|") > -1) {
-            return line.split("|");
-        }
-        return line.split(";");
+        return line.indexOf("|") > -1 ? line.split("|") : line.split(";");
     }
 
     function parseDocumentConfig(rawConfig) {
@@ -294,7 +294,7 @@
         return Array.isArray(value) ? value : [];
     }
 
-    function collectSourceTexts(widget) {
+    function collectWidgetSourceTexts(widget) {
         var sources = [];
         var properties = getWidgetJsonAttribute(widget, "data-ap-pdf-properties");
         var variationProperties = getWidgetJsonAttribute(widget, "data-ap-pdf-variation-properties");
@@ -312,6 +312,140 @@
             }
         }
         return sources;
+    }
+
+    function shouldSkipObject(value) {
+        if (!value || typeof value !== "object") {
+            return true;
+        }
+        if (value === window || value === document || value === document.documentElement || value === document.body) {
+            return true;
+        }
+        if (typeof Node !== "undefined" && value instanceof Node) {
+            return true;
+        }
+        return false;
+    }
+
+    function findGlobalSourcesAsync(cfg, done) {
+        var cacheKey = window.location.href;
+        if (CACHE_BY_URL[cacheKey]) {
+            done(CACHE_BY_URL[cacheKey]);
+            return;
+        }
+        if (PENDING_CALLBACKS_BY_URL[cacheKey]) {
+            PENDING_CALLBACKS_BY_URL[cacheKey].push(done);
+            return;
+        }
+        PENDING_CALLBACKS_BY_URL[cacheKey] = [done];
+
+        var roots = [];
+        if (window.ceresStore) {
+            roots.push({ label: "window.ceresStore", value: window.ceresStore });
+        }
+        if (window.App) {
+            roots.push({ label: "window.App", value: window.App });
+        }
+
+        var queue = roots;
+        var seen = typeof WeakSet !== "undefined" ? new WeakSet() : null;
+        var sources = [];
+        var visited = 0;
+        var maxVisited = 12000;
+        var maxSources = 40;
+        var chunkSize = 300;
+
+        function finish() {
+            var result = { sources: sources, visited: visited };
+            CACHE_BY_URL[cacheKey] = result;
+            var callbacks = PENDING_CALLBACKS_BY_URL[cacheKey] || [];
+            delete PENDING_CALLBACKS_BY_URL[cacheKey];
+            for (var cb = 0; cb < callbacks.length; cb++) {
+                callbacks[cb](result);
+            }
+        }
+
+        function processChunk() {
+            var count = 0;
+            while (queue.length && count < chunkSize && visited < maxVisited && sources.length < maxSources) {
+                var item = queue.shift();
+                var value = item.value;
+                count++;
+                visited++;
+
+                if (value === null || value === undefined) {
+                    continue;
+                }
+
+                if (typeof value === "string") {
+                    if (value.indexOf(".pdf") !== -1) {
+                        sources.push(item.label + ":" + value);
+                    }
+                    continue;
+                }
+
+                if (typeof value !== "object" || shouldSkipObject(value)) {
+                    continue;
+                }
+
+                if (seen) {
+                    if (seen.has(value)) {
+                        continue;
+                    }
+                    seen.add(value);
+                }
+
+                var keys;
+                try {
+                    keys = Object.keys(value);
+                } catch (ignore) {
+                    continue;
+                }
+
+                var hasPdfPrimitive = false;
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    var child;
+                    try {
+                        child = value[k];
+                    } catch (ignore2) {
+                        continue;
+                    }
+                    if (typeof child === "string" && child.indexOf(".pdf") !== -1) {
+                        hasPdfPrimitive = true;
+                    }
+                    if (child && typeof child === "object" && !shouldSkipObject(child)) {
+                        queue.push({ label: item.label + "." + k, value: child });
+                    } else if (typeof child === "string" && child.length < 2000) {
+                        // Primitive strings are kept with their local path for context.
+                        if (child.indexOf(".pdf") !== -1) {
+                            queue.push({ label: item.label + "." + k, value: child });
+                        }
+                    }
+                }
+
+                if (hasPdfPrimitive) {
+                    var context = safeStringify(value);
+                    if (context && context.indexOf(".pdf") !== -1) {
+                        // Only keep JSON snippets that can plausibly match one configured document.
+                        for (var d = 0; d < cfg.documents.length; d++) {
+                            if (contextMatchesDocument(context, cfg.documents[d])) {
+                                sources.push(context);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ((queue.length && visited < maxVisited && sources.length < maxSources)) {
+                window.setTimeout(processChunk, 0);
+            } else {
+                finish();
+            }
+        }
+
+        window.setTimeout(processChunk, 0);
     }
 
     function canonicalKey(url) {
@@ -357,9 +491,8 @@
         return ordered;
     }
 
-    function findDocuments(widget, cfg) {
+    function findDocumentsFromSources(sources, cfg) {
         var candidates = [];
-        var sources = collectSourceTexts(widget);
         for (var i = 0; i < sources.length; i++) {
             extractPdfCandidatesFromText(sources[i], candidates, cfg);
         }
@@ -367,9 +500,7 @@
             documents: finalizeDocuments(candidates, cfg),
             rawCount: candidates.length,
             sourceCount: sources.length,
-            configuredCount: cfg.documents.length,
-            propertyCount: getWidgetJsonAttribute(widget, "data-ap-pdf-properties").length,
-            variationPropertyCount: getWidgetJsonAttribute(widget, "data-ap-pdf-variation-properties").length
+            configuredCount: cfg.documents.length
         };
     }
 
@@ -403,7 +534,52 @@
         return a;
     }
 
-    function renderWidget(widget) {
+    function renderEmpty(widget, list, cfg, result, globalInfo) {
+        widget.classList.remove("ap-pdf-widget-has-documents");
+        widget.classList.add("ap-pdf-widget-no-documents");
+        list.innerHTML = "";
+
+        if (cfg.debugMode) {
+            var debugEmpty = document.createElement("div");
+            debugEmpty.className = "ap-pdf-widget-debug";
+            debugEmpty.textContent = "PDF-Widget Debug: Dokumente=0, Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", GlobalVisited=" + (globalInfo ? globalInfo.visited : 0) + ", v=2.8.0";
+            list.appendChild(debugEmpty);
+            return;
+        }
+
+        // Important: keep a minimal real element in the ShopBuilder tab content.
+        // Some tab layouts collapse or damage following rows when a tab pane becomes completely empty.
+        var spacer = document.createElement("span");
+        spacer.className = "ap-pdf-empty-spacer";
+        spacer.setAttribute("aria-hidden", "true");
+        spacer.textContent = "\u00a0";
+        list.appendChild(spacer);
+    }
+
+    function renderDocuments(widget, list, cfg, result, globalInfo) {
+        widget.classList.remove("ap-pdf-widget-no-documents");
+        widget.classList.add("ap-pdf-widget-has-documents");
+        list.innerHTML = "";
+        for (var i = 0; i < result.documents.length; i++) {
+            list.appendChild(makeDocumentLink(result.documents[i]));
+        }
+        if (cfg.debugMode) {
+            var debug = document.createElement("div");
+            debug.className = "ap-pdf-widget-debug";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", GlobalVisited=" + (globalInfo ? globalInfo.visited : 0) + ", v=2.8.0";
+            list.appendChild(debug);
+        }
+    }
+
+    function finishWidget(widget) {
+        widget.classList.remove("ap-pdf-widget-loading");
+        widget.classList.add("ap-pdf-widget-ready");
+        widget.setAttribute("data-ap-pdf-rendered", "1");
+        widget.hidden = false;
+        widget.removeAttribute("hidden");
+    }
+
+    function renderWidget(widget, allowAsyncFallback) {
         if (!widget) {
             return;
         }
@@ -414,59 +590,55 @@
             return;
         }
 
-        var result = findDocuments(widget, cfg);
-        list.innerHTML = "";
+        var widgetSources = collectWidgetSourceTexts(widget);
+        var result = findDocumentsFromSources(widgetSources, cfg);
 
-        // Layout-safe behaviour: never use the HTML hidden attribute here.
-        // In this ShopBuilder tab layout, hidden/display:none on the root widget can
-        // confuse the following rows/columns. We only make the widget zero-height when empty.
+        // Never hide the widget root and never manipulate tabs/rows/columns.
         widget.hidden = false;
         widget.removeAttribute("hidden");
 
-        if (!result.documents.length) {
-            if (cfg.debugMode) {
-                widget.classList.remove("ap-pdf-widget-empty");
-                var debugEmpty = document.createElement("div");
-                debugEmpty.className = "ap-pdf-widget-debug";
-                debugEmpty.textContent = "PDF-Widget Debug: Dokumente=0, Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", Eigenschaften=" + result.propertyCount + ", Varianten-Eigenschaften=" + result.variationPropertyCount + ", konfiguriert=" + result.configuredCount + ", v=2.7.0";
-                list.appendChild(debugEmpty);
-            } else if (cfg.hideWhenEmpty) {
-                widget.classList.add("ap-pdf-widget-empty");
-            } else {
-                widget.classList.remove("ap-pdf-widget-empty");
-            }
-        } else {
-            widget.classList.remove("ap-pdf-widget-empty");
-            for (var i = 0; i < result.documents.length; i++) {
-                list.appendChild(makeDocumentLink(result.documents[i]));
-            }
-            if (cfg.debugMode) {
-                var debug = document.createElement("div");
-                debug.className = "ap-pdf-widget-debug";
-                debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", Eigenschaften=" + result.propertyCount + ", Varianten-Eigenschaften=" + result.variationPropertyCount + ", konfiguriert=" + result.configuredCount + ", v=2.7.0";
-                list.appendChild(debug);
-            }
+        if (result.documents.length) {
+            renderDocuments(widget, list, cfg, result, null);
+            finishWidget(widget);
+            return;
         }
 
-        widget.classList.remove("ap-pdf-widget-loading");
-        widget.classList.add("ap-pdf-widget-ready");
-        widget.setAttribute("data-ap-pdf-rendered", "1");
+        renderEmpty(widget, list, cfg, result, null);
+        finishWidget(widget);
+
+        if (allowAsyncFallback === false || widget.getAttribute("data-ap-pdf-global-scan") === "1") {
+            return;
+        }
+
+        widget.setAttribute("data-ap-pdf-global-scan", "1");
+        findGlobalSourcesAsync(cfg, function (globalInfo) {
+            var currentCfg = readConfig(widget);
+            var allSources = collectWidgetSourceTexts(widget).concat(globalInfo.sources || []);
+            var globalResult = findDocumentsFromSources(allSources, currentCfg);
+            if (globalResult.documents.length) {
+                renderDocuments(widget, list, currentCfg, globalResult, globalInfo);
+            } else {
+                renderEmpty(widget, list, currentCfg, globalResult, globalInfo);
+            }
+            finishWidget(widget);
+        });
     }
 
     function initWidget(widget) {
         if (!widget || widget.getAttribute("data-ap-pdf-observed") === "1") {
-            renderWidget(widget);
+            renderWidget(widget, true);
             return;
         }
 
         widget.setAttribute("data-ap-pdf-observed", "1");
-        renderWidget(widget);
+        renderWidget(widget, true);
 
         if (typeof MutationObserver !== "undefined") {
             var observer = new MutationObserver(function (mutations) {
                 for (var i = 0; i < mutations.length; i++) {
                     if (mutations[i].attributeName === "data-ap-pdf-properties" || mutations[i].attributeName === "data-ap-pdf-variation-properties") {
-                        renderWidget(widget);
+                        widget.removeAttribute("data-ap-pdf-global-scan");
+                        renderWidget(widget, true);
                         break;
                     }
                 }
@@ -474,8 +646,7 @@
             observer.observe(widget, { attributes: true, attributeFilter: ["data-ap-pdf-properties", "data-ap-pdf-variation-properties"] });
         }
 
-        window.setTimeout(function () { renderWidget(widget); }, 100);
-        window.setTimeout(function () { renderWidget(widget); }, 400);
+        window.setTimeout(function () { renderWidget(widget, true); }, 150);
     }
 
     function init() {
