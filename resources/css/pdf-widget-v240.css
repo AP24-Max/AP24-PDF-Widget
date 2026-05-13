@@ -1,15 +1,29 @@
+.ap-pdf-widget,
+.ap-pdf-widget * {
+    box-sizing: border-box;
+}
+
 .ap-pdf-widget {
     display: block;
+    width: 100%;
+    max-width: 100%;
     margin: 18px 0;
+    overflow: visible;
+    clear: both;
 }
+
 .ap-pdf-widget[hidden] {
     display: none !important;
 }
+
 .ap-pdf-widget-list {
     display: flex;
     flex-wrap: wrap;
     gap: 18px;
+    width: 100%;
+    max-width: 100%;
 }
+
 .ap-pdf-document-link {
     display: inline-flex;
     align-items: center;
@@ -24,6 +38,7 @@
     text-decoration: none;
     transition: box-shadow .15s ease, border-color .15s ease;
 }
+
 .ap-pdf-document-link:hover,
 .ap-pdf-document-link:focus {
     color: #333;
@@ -31,11 +46,13 @@
     border-color: #6baa2c;
     box-shadow: 0 3px 12px rgba(0,0,0,.08);
 }
+
 .ap-pdf-document-icon {
     position: relative;
     display: inline-flex;
     align-items: flex-end;
     justify-content: center;
+    flex: 0 0 auto;
     width: 58px;
     height: 74px;
     padding-bottom: 11px;
@@ -45,6 +62,7 @@
     line-height: 1;
     background: #fff;
 }
+
 .ap-pdf-document-icon::after {
     content: "";
     position: absolute;
@@ -56,23 +74,29 @@
     border-left: 4px solid #6baa2c;
     border-bottom: 4px solid #6baa2c;
 }
+
 .ap-pdf-document-text {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 0;
 }
+
 .ap-pdf-document-title {
     font-weight: 700;
     font-size: 18px;
     color: #222;
 }
+
 .ap-pdf-document-subtitle {
     font-size: 15px;
     color: #555;
 }
+
 .ap-pdf-widget-placeholder {
     color: #666;
 }
+
 .ap-pdf-widget-debug {
     flex-basis: 100%;
     margin-top: 10px;
@@ -85,4 +109,22 @@
 
 .ap-pdf-widget-empty {
     display: none !important;
+}
+
+.ap-pdf-tab-title-hidden {
+    display: none !important;
+}
+
+@media (max-width: 575.98px) {
+    .ap-pdf-widget-list {
+        display: block;
+    }
+
+    .ap-pdf-document-link {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 12px;
+        padding: 16px 18px;
+    }
 }

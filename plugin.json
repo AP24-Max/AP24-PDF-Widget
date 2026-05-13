@@ -1,10 +1,10 @@
 {
     "name": "AgrarProfiPdfWidget",
     "namespace": "AgrarProfiPdfWidget",
-    "description": "Reines ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei. Mit optionalem Ausblenden des ShopBuilder-Tabs, wenn keine PDFs gefunden werden.",
+    "description": "Reines ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei. Layout-sichere Version ohne Manipulation von ShopBuilder-Content-Containern.",
     "author": "Agrar-Profi24",
     "type": "template",
-    "version": "2.2.0",
+    "version": "2.4.0",
     "serviceProvider": "AgrarProfiPdfWidget\\Providers\\AgrarProfiPdfWidgetServiceProvider",
     "keywords": [
         "plentyShop LTS",
@@ -14,5 +14,10 @@
         "Artikel",
         "Eigenschaften",
         "Datei"
-    ]
+    ],
+    "require": {},
+    "isClosedSource": false,
+    "platform": {
+        "php": ">=7.3 <8.3"
+    }
 }

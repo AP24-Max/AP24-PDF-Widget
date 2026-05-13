@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V220__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V240__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -20,17 +20,27 @@
         return value === "1" || value === "true" || value === "yes" || value === "ja" || value === "on";
     }
 
-    function isPdfUrl(value) {
-        return typeof value === "string" && /\.pdf(?:[?#].*)?$/i.test(value.trim());
+    function decodeHtml(value) {
+        value = toStringValue(value);
+        if (value.indexOf("&") === -1) {
+            return value;
+        }
+        var textarea = document.createElement("textarea");
+        textarea.innerHTML = value;
+        return textarea.value;
     }
 
     function decodeUrl(value) {
-        value = toStringValue(value).trim();
+        value = decodeHtml(toStringValue(value).trim());
         try {
             return decodeURIComponent(value);
         } catch (ignore) {
             return value;
         }
+    }
+
+    function isPdfUrl(value) {
+        return typeof value === "string" && /\.pdf(?:[?#].*)?$/i.test(value.trim());
     }
 
     function cleanBaseUrl(value) {
@@ -43,19 +53,54 @@
         if (idx > -1) {
             return cleanBaseUrl(url.substring(0, idx));
         }
+        idx = url.indexOf("/plugin/");
+        if (idx > -1) {
+            return cleanBaseUrl(url.substring(0, idx));
+        }
         return "";
     }
 
+    var cachedBase = null;
     function getPublicStorageBase(configuredBase, rawUrl) {
         var configured = cleanBaseUrl(configuredBase || "");
         if (configured) {
             return configured;
         }
-        return extractPublicBaseFromUrl(rawUrl);
+        if (rawUrl) {
+            var fromRaw = extractPublicBaseFromUrl(rawUrl);
+            if (fromRaw) {
+                return fromRaw;
+            }
+        }
+        if (cachedBase !== null) {
+            return cachedBase;
+        }
+        var urls = [];
+        var nodes = document.querySelectorAll("link[href], script[src]");
+        for (var i = 0; i < nodes.length; i++) {
+            urls.push(nodes[i].href || nodes[i].src || "");
+        }
+        var preferred = "";
+        var fallback = "";
+        for (var u = 0; u < urls.length; u++) {
+            var base = extractPublicBaseFromUrl(urls[u]);
+            if (!base) {
+                continue;
+            }
+            if (urls[u].indexOf("plentymarkets-public") !== -1 || urls[u].indexOf("s3-eu-west-1.amazonaws.com") !== -1) {
+                preferred = base;
+                break;
+            }
+            if (!fallback) {
+                fallback = base;
+            }
+        }
+        cachedBase = preferred || fallback || "";
+        return cachedBase;
     }
 
     function normalizeUrl(rawUrl, configuredBase) {
-        var raw = decodeUrl(rawUrl).replace(/\\\//g, "/").replace(/&amp;/g, "&").trim();
+        var raw = decodeUrl(rawUrl).replace(/\\\//g, "/").trim();
         if (!raw) {
             return "";
         }
@@ -99,12 +144,12 @@
         return {
             manualPropertyId: widget.getAttribute("data-manual-property-id") || "",
             datasheetPropertyId: widget.getAttribute("data-datasheet-property-id") || "",
-            manualPropertyName: widget.getAttribute("data-manual-property-name") || "PDF Anleitung",
-            datasheetPropertyName: widget.getAttribute("data-datasheet-property-name") || "PDF Datenblatt",
-            manualTitle: widget.getAttribute("data-manual-title") || "Bedienungsanleitung",
-            datasheetTitle: widget.getAttribute("data-datasheet-title") || "Datenblatt",
-            manualLinkLabel: widget.getAttribute("data-manual-link-label") || "Bedienungsanleitung öffnen",
-            datasheetLinkLabel: widget.getAttribute("data-datasheet-link-label") || "Datenblatt öffnen",
+            manualPropertyName: decodeHtml(widget.getAttribute("data-manual-property-name") || "PDF Anleitung"),
+            datasheetPropertyName: decodeHtml(widget.getAttribute("data-datasheet-property-name") || "PDF Datenblatt"),
+            manualTitle: decodeHtml(widget.getAttribute("data-manual-title") || "Bedienungsanleitung"),
+            datasheetTitle: decodeHtml(widget.getAttribute("data-datasheet-title") || "Datenblatt"),
+            manualLinkLabel: decodeHtml(widget.getAttribute("data-manual-link-label") || "Bedienungsanleitung öffnen"),
+            datasheetLinkLabel: decodeHtml(widget.getAttribute("data-datasheet-link-label") || "Datenblatt öffnen"),
             publicStorageBase: widget.getAttribute("data-public-storage-base") || "",
             hideWhenEmpty: isTrue(widget.getAttribute("data-hide-when-empty")),
             hideTabWhenEmpty: isTrue(widget.getAttribute("data-hide-tab-when-empty")),
@@ -144,7 +189,7 @@
     }
 
     function extractPdfCandidatesFromText(text, out, cfg) {
-        text = toStringValue(text);
+        text = decodeHtml(toStringValue(text));
         if (text.indexOf(".pdf") === -1) {
             return;
         }
@@ -160,8 +205,8 @@
             var match;
             while ((match = re.exec(text)) !== null) {
                 var raw = toStringValue(match[0]).replace(/^[\s"'=:(,]+/, "");
-                var start = Math.max(0, match.index - 600);
-                var end = Math.min(text.length, match.index + raw.length + 600);
+                var start = Math.max(0, match.index - 700);
+                var end = Math.min(text.length, match.index + raw.length + 700);
                 var context = text.substring(start, end);
                 addCandidate(out, raw, context, "manual", cfg);
                 addCandidate(out, raw, context, "datasheet", cfg);
@@ -169,13 +214,50 @@
         }
     }
 
+    function safeStringify(value) {
+        try {
+            var seen = [];
+            return JSON.stringify(value, function (key, val) {
+                if (typeof val === "object" && val !== null) {
+                    if (seen.indexOf(val) !== -1) {
+                        return undefined;
+                    }
+                    seen.push(val);
+                }
+                if (typeof val === "function") {
+                    return undefined;
+                }
+                return val;
+            });
+        } catch (ignore) {
+            return "";
+        }
+    }
+
     function collectSourceTexts() {
         var sources = [];
-        try {
-            if (window.ceresStore && window.ceresStore.state && window.ceresStore.state.item) {
-                sources.push(JSON.stringify(window.ceresStore.state.item));
+        var scripts = document.querySelectorAll("script:not([src])");
+        for (var i = 0; i < scripts.length; i++) {
+            var t = scripts[i].textContent || "";
+            if (t.indexOf(".pdf") !== -1) {
+                sources.push(t);
             }
-        } catch (ignoreItem) {}
+        }
+
+        // Zielgerichtete Datenquellen ohne schweren rekursiven Window-Scan.
+        var candidates = [];
+        try { candidates.push(window.ceresStore && window.ceresStore.state && window.ceresStore.state.item); } catch (ignore1) {}
+        try { candidates.push(window.ceresStore && window.ceresStore.state && window.ceresStore.state.items); } catch (ignore2) {}
+        try { candidates.push(window.ceresStore && window.ceresStore.state && window.ceresStore.state.itemList); } catch (ignore3) {}
+        try { candidates.push(window.ceresStore && window.ceresStore.getters); } catch (ignore4) {}
+        try { candidates.push(window.ceresStore && window.ceresStore._vm && window.ceresStore._vm.$data); } catch (ignore5) {}
+
+        for (var c = 0; c < candidates.length; c++) {
+            var txt = safeStringify(candidates[c]);
+            if (txt && txt.indexOf(".pdf") !== -1) {
+                sources.push(txt);
+            }
+        }
 
         return sources;
     }
@@ -275,83 +357,41 @@
         return a;
     }
 
-    function cssEscape(value) {
-        if (window.CSS && typeof window.CSS.escape === "function") {
-            return window.CSS.escape(value);
-        }
-        return toStringValue(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+    function normalizeText(value) {
+        return lower(value).replace(/\s+/g, " ").trim();
     }
 
-    function findTabPane(widget) {
-        var el = widget.parentElement;
-        while (el && el !== document.body) {
-            if (el.getAttribute("role") === "tabpanel" || (el.classList && el.classList.contains("tab-pane"))) {
-                return el;
+    function safeHideTabTitle(widget) {
+        // Layout-sicher: Es wird ausschließlich der sichtbare Tab-Kopf ausgeblendet.
+        // Es werden keine ShopBuilder-Container, Tab-Panes, Rows oder Spalten verändert.
+        var label = "datenblatt/anleitungen";
+        var candidates = document.querySelectorAll("a, button, [role='tab'], .nav-link, .tab-link");
+        var best = null;
+        for (var i = 0; i < candidates.length; i++) {
+            var text = normalizeText(candidates[i].textContent || "");
+            if (text === label || text.indexOf(label) !== -1) {
+                best = candidates[i];
+                break;
             }
-            if (el.id) {
-                var selector = '[href="#' + cssEscape(el.id) + '"], [data-target="#' + cssEscape(el.id) + '"], [aria-controls="' + cssEscape(el.id) + '"]';
-                if (document.querySelector(selector)) {
-                    return el;
+        }
+        if (!best) {
+            return;
+        }
+        var wasActive = best.classList && best.classList.contains("active");
+        var target = best.closest ? best.closest("li, .nav-item, [role='presentation']") : null;
+        target = target || best;
+        target.classList.add("ap-pdf-tab-title-hidden");
+        target.setAttribute("data-ap-pdf-tab-title-hidden", "1");
+        best.setAttribute("aria-hidden", "true");
+        best.setAttribute("tabindex", "-1");
+
+        if (wasActive) {
+            var nav = target.parentElement;
+            if (nav) {
+                var other = nav.querySelector("a:not([aria-hidden='true']), button:not([aria-hidden='true']), [role='tab']:not([aria-hidden='true'])");
+                if (other && other !== best) {
+                    try { other.click(); } catch (ignore) {}
                 }
-            }
-            el = el.parentElement;
-        }
-        return null;
-    }
-
-    function findTabToggleForPane(pane) {
-        if (!pane || !pane.id) {
-            return null;
-        }
-        var id = cssEscape(pane.id);
-        return document.querySelector('[href="#' + id + '"], [data-target="#' + id + '"], [aria-controls="' + id + '"]');
-    }
-
-    function isElementVisible(el) {
-        return !!(el && el.offsetParent !== null && getComputedStyle(el).display !== "none" && getComputedStyle(el).visibility !== "hidden");
-    }
-
-    function activateFirstVisibleSiblingTab(hiddenToggle) {
-        if (!hiddenToggle) {
-            return;
-        }
-        var navItem = hiddenToggle.closest ? hiddenToggle.closest("li, .nav-item, [role='presentation']") : null;
-        var nav = navItem && navItem.parentElement ? navItem.parentElement : hiddenToggle.parentElement;
-        if (!nav) {
-            return;
-        }
-        var toggles = nav.querySelectorAll('[href^="#"], [data-target^="#"], [aria-controls]');
-        for (var i = 0; i < toggles.length; i++) {
-            if (toggles[i] !== hiddenToggle && isElementVisible(toggles[i])) {
-                try {
-                    toggles[i].click();
-                } catch (ignoreClick) {}
-                return;
-            }
-        }
-    }
-
-    function hideParentTab(widget) {
-        var pane = findTabPane(widget);
-        var toggle = findTabToggleForPane(pane);
-
-        if (pane) {
-            pane.hidden = true;
-            pane.style.display = "none";
-            pane.setAttribute("data-ap-pdf-tab-hidden", "1");
-        }
-
-        if (toggle) {
-            var wasActive = toggle.classList && toggle.classList.contains("active");
-            var navItem = toggle.closest ? toggle.closest("li, .nav-item, [role='presentation']") : null;
-            var target = navItem || toggle;
-            target.hidden = true;
-            target.style.display = "none";
-            target.setAttribute("data-ap-pdf-tab-hidden", "1");
-            toggle.setAttribute("aria-hidden", "true");
-            toggle.setAttribute("tabindex", "-1");
-            if (wasActive) {
-                activateFirstVisibleSiblingTab(toggle);
             }
         }
     }
@@ -381,7 +421,7 @@
                 list.appendChild(empty);
             }
             if (cfg.hideTabWhenEmpty) {
-                hideParentTab(widget);
+                safeHideTabTitle(widget);
             }
         } else {
             widget.hidden = false;
@@ -392,9 +432,11 @@
         }
 
         if (cfg.debugMode) {
+            widget.hidden = false;
+            widget.classList.remove("ap-pdf-widget-empty");
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount;
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", v=2.4.0";
             list.appendChild(debug);
         }
 
