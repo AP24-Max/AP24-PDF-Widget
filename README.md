@@ -1,4 +1,4 @@
-# AgrarProfiPdfWidget 2.14.0
+# AgrarProfiPdfWidget 2.15.0
 
 ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ **Datei**.
 

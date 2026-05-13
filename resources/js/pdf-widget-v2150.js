@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2140__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2150__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -130,6 +130,14 @@
         var base = getPublicStorageBase(configuredBase, raw);
 
         if (/^https?:\/\//i.test(raw)) {
+            // If a fixed public storage base is configured, always force propertyItems
+            // links to that base. In live mode plentyShop can otherwise turn relative
+            // file values into https://shop-domain/propertyItems/..., which returns 404.
+            var configured = cleanBaseUrl(configuredBase || "");
+            var propertyItemsAbsolute = raw.match(/^https?:\/\/[^/]+\/propertyItems\/(\d+\/[^?#"'<>]+\.pdf(?:[?#][^"'<>]*)?)$/i);
+            if (propertyItemsAbsolute && configured) {
+                return configured + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
+            }
             if (raw.indexOf("/propertyItems/") > -1) {
                 return raw;
             }
@@ -663,7 +671,7 @@
         if (cfg.debugMode) {
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.14.0";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.15.0";
             list.appendChild(debug);
         }
 

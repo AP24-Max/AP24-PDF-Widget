@@ -4,7 +4,7 @@
     "description": "ShopBuilder-Widget für beliebig viele PDF-Dokumente aus Varianten-Eigenschaften vom Typ Datei. Version mit konfigurierbarer Kachelgröße, Spaltenanzahl und Schriftgrößen.",
     "author": "Agrar-Profi24",
     "type": "template",
-    "version": "2.14.0",
+    "version": "2.15.0",
     "serviceProvider": "AgrarProfiPdfWidget\\Providers\\AgrarProfiPdfWidgetServiceProvider",
     "keywords": [
         "plentyShop LTS",
