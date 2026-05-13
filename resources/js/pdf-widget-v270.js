@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V260__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V270__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -417,21 +417,25 @@
         var result = findDocuments(widget, cfg);
         list.innerHTML = "";
 
+        // Layout-safe behaviour: never use the HTML hidden attribute here.
+        // In this ShopBuilder tab layout, hidden/display:none on the root widget can
+        // confuse the following rows/columns. We only make the widget zero-height when empty.
+        widget.hidden = false;
+        widget.removeAttribute("hidden");
+
         if (!result.documents.length) {
-            widget.classList.add("ap-pdf-widget-empty");
             if (cfg.debugMode) {
-                widget.hidden = false;
+                widget.classList.remove("ap-pdf-widget-empty");
                 var debugEmpty = document.createElement("div");
                 debugEmpty.className = "ap-pdf-widget-debug";
-                debugEmpty.textContent = "PDF-Widget Debug: Dokumente=0, Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", Eigenschaften=" + result.propertyCount + ", Varianten-Eigenschaften=" + result.variationPropertyCount + ", konfiguriert=" + result.configuredCount + ", v=2.6.0";
+                debugEmpty.textContent = "PDF-Widget Debug: Dokumente=0, Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", Eigenschaften=" + result.propertyCount + ", Varianten-Eigenschaften=" + result.variationPropertyCount + ", konfiguriert=" + result.configuredCount + ", v=2.7.0";
                 list.appendChild(debugEmpty);
             } else if (cfg.hideWhenEmpty) {
-                widget.hidden = true;
+                widget.classList.add("ap-pdf-widget-empty");
             } else {
-                widget.hidden = false;
+                widget.classList.remove("ap-pdf-widget-empty");
             }
         } else {
-            widget.hidden = false;
             widget.classList.remove("ap-pdf-widget-empty");
             for (var i = 0; i < result.documents.length; i++) {
                 list.appendChild(makeDocumentLink(result.documents[i]));
@@ -439,7 +443,7 @@
             if (cfg.debugMode) {
                 var debug = document.createElement("div");
                 debug.className = "ap-pdf-widget-debug";
-                debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", Eigenschaften=" + result.propertyCount + ", Varianten-Eigenschaften=" + result.variationPropertyCount + ", konfiguriert=" + result.configuredCount + ", v=2.6.0";
+                debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", Eigenschaften=" + result.propertyCount + ", Varianten-Eigenschaften=" + result.variationPropertyCount + ", konfiguriert=" + result.configuredCount + ", v=2.7.0";
                 list.appendChild(debug);
             }
         }
