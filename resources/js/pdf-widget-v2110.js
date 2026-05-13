@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2100__";
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2110__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -37,6 +37,20 @@
         } catch (ignore) {
             return value;
         }
+    }
+
+    function normalizeScanText(value) {
+        value = decodeHtml(toStringValue(value));
+        value = value.replace(/\\u([0-9a-fA-F]{4})/g, function (_, hex) {
+            try {
+                return String.fromCharCode(parseInt(hex, 16));
+            } catch (ignore) {
+                return _;
+            }
+        });
+        value = value.replace(/\\"/g, '"');
+        value = value.replace(/\\\//g, '/');
+        return value;
     }
 
     function safeJsonParse(value, fallback) {
@@ -288,12 +302,37 @@
         return bestDistance <= maxDistance ? best : null;
     }
 
+    function addStructuredPlentyCandidates(text, out, cfg) {
+        // plentyShop stores file properties in the rendered item JSON like:
+        // "propertyId":1935 ... "values":{"id":192670,"value":"192670/Scharmueller.pdf"}
+        // The value is often a relative propertyItems path and may be JSON-escaped.
+        for (var i = 0; i < cfg.documents.length; i++) {
+            var doc = cfg.documents[i];
+            var id = escapeRegExp(doc.id);
+            var patterns = [
+                new RegExp('(?:"propertyId"|propertyId)\s*:\s*"?' + id + '"?[\s\S]{0,7000}?(?:"values"|values)\s*:\s*\{[\s\S]{0,1600}?(?:"value"|value)\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"', 'ig'),
+                new RegExp('(?:"id"|id)\s*:\s*"?' + id + '"?[\s\S]{0,7000}?(?:"values"|values)\s*:\s*\{[\s\S]{0,1600}?(?:"value"|value)\s*:\s*"([^"<>]+?\.pdf(?:[?#][^"<>]*)?)"', 'ig')
+            ];
+            for (var p = 0; p < patterns.length; p++) {
+                var re = patterns[p];
+                var match;
+                while ((match = re.exec(text)) !== null) {
+                    addCandidateForDocument(out, match[1], doc, cfg.publicStorageBase);
+                    if (re.lastIndex === match.index) {
+                        re.lastIndex++;
+                    }
+                }
+            }
+        }
+    }
+
     function extractPdfCandidatesFromText(text, out, cfg) {
-        text = decodeHtml(toStringValue(text));
+        text = normalizeScanText(text);
         if (text.indexOf(".pdf") === -1 || !cfg.documents.length) {
             return;
         }
-        text = text.replace(/\\\//g, "/");
+
+        addStructuredPlentyCandidates(text, out, cfg);
 
         var markers = buildDocumentMarkers(text, cfg);
         if (!markers.length) {
@@ -493,7 +532,7 @@
         if (cfg.debugMode) {
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.10.0";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.11.0";
             list.appendChild(debug);
         }
 
