@@ -15,7 +15,7 @@
         "type": "text",
         "default": "",
         "possibleValues": [],
-        "description": "Nur nötig, falls aus Datei-Eigenschaften relative Pfade entstehen. Beispiel: https://s3-eu-west-1.amazonaws.com/plentymarkets-public-94/qw2mi3mfxcod"
+        "description": "Für agrar-profi24 wird im Plugin fest https://cdn03.plentymarkets.com/qw2mi3mfxcod/propertyItems/ verwendet. Dieses Feld kann leer bleiben."
     },
     {
         "tab": "PDF-Widget",

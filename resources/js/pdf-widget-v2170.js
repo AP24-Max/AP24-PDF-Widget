@@ -1,7 +1,9 @@
 (function () {
     "use strict";
 
-    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2160__";
+    var FIXED_PROPERTY_ITEMS_BASE = "https://cdn03.plentymarkets.com/qw2mi3mfxcod/propertyItems/";
+
+    var SCRIPT_FLAG = "__AGRAR_PROFI_PDF_WIDGET_V2170__";
     if (window[SCRIPT_FLAG]) {
         window[SCRIPT_FLAG].init();
         return;
@@ -168,61 +170,46 @@
         return cachedBase;
     }
 
-    function normalizeUrl(rawUrl, configuredBase) {
+    function forceFixedPropertyItemsUrl(rawUrl) {
         var raw = decodeUrl(rawUrl).replace(/\\\//g, "/").trim();
         if (!raw) {
             return "";
         }
 
-        var base = getPublicStorageBase(configuredBase, raw);
+        // Decode a second time when plentyShop/ShopBuilder has written entity-coded
+        // URLs into attributes, e.g. https&#x3A;&#x2F;&#x2F;... .
+        raw = decodeHtml(raw).replace(/\\\//g, "/").trim();
 
+        // Always extract the path behind propertyItems/ if present, no matter whether
+        // the browser has already prefixed the shop domain or whether the value starts
+        // with an encoded https URL.
+        var propertyItemsMatch = raw.match(/propertyItems\/(\d+\/[^?#"'<>]+?\.pdf(?:[?#][^"'<>]*)?)/i);
+        if (propertyItemsMatch && propertyItemsMatch[1]) {
+            return FIXED_PROPERTY_ITEMS_BASE + propertyItemsMatch[1].replace(/^\/+/, "");
+        }
+
+        // plenty file properties can also be saved as a plain relative value:
+        // 192619/file.pdf
+        var relativeMatch = raw.match(/(?:^|[\s"'=:(,\/])(\d+\/[^?#"'<>]+?\.pdf(?:[?#][^"'<>]*)?)/i);
+        if (relativeMatch && relativeMatch[1]) {
+            return FIXED_PROPERTY_ITEMS_BASE + relativeMatch[1].replace(/^\/+/, "");
+        }
+
+        // Keep external absolute PDFs untouched. This is only a fallback; file-type
+        // properties should always end up in the fixed propertyItems base above.
         if (/^https?:\/\//i.test(raw)) {
-            // If a fixed public storage base is configured, always force propertyItems
-            // links to that base. In live mode plentyShop can otherwise turn relative
-            // file values into https://shop-domain/propertyItems/..., which returns 404.
-            var configured = cleanBaseUrl(configuredBase || "");
-            var propertyItemsAbsolute = raw.match(/^https?:\/\/[^/]+\/propertyItems\/(\d+\/[^?#"'<>]+\.pdf(?:[?#][^"'<>]*)?)$/i);
-            if (propertyItemsAbsolute) {
-                if (configured) {
-                    return configured + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
-                }
-                if (base) {
-                    try {
-                        var rawUrlObj = new URL(raw);
-                        var baseUrlObj = new URL(base);
-                        if (rawUrlObj.hostname === window.location.hostname || rawUrlObj.hostname !== baseUrlObj.hostname) {
-                            return base + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
-                        }
-                    } catch (ignore) {
-                        return base + "/propertyItems/" + propertyItemsAbsolute[1].replace(/^\/+/, "");
-                    }
-                }
-            }
-            if (raw.indexOf("/propertyItems/") > -1) {
-                return raw;
-            }
-            var absoluteMatch = raw.match(/^https?:\/\/[^/]+\/(\d+\/[^?#"'<>]+\.pdf(?:[?#][^"'<>]*)?)$/i);
-            if (absoluteMatch && base) {
-                return base + "/propertyItems/" + absoluteMatch[1].replace(/^\/+/, "");
-            }
             return raw;
         }
 
-        if (/^\/\//.test(raw)) {
-            return window.location.protocol + raw;
-        }
+        return raw.charAt(0) === "/" ? raw : "/" + raw.replace(/^\/+/, "");
+    }
 
-        var clean = raw.replace(/^\/+/, "");
-        var propertyMatch = clean.match(/(?:^|.*\/)(propertyItems\/\d+\/[^?#"'<>]+\.pdf(?:[?#][^"'<>]*)?)$/i);
-        if (propertyMatch && base) {
-            return base + "/" + propertyMatch[1];
-        }
-
-        if (/^\d+\/[^?#"'<>]+\.pdf(?:[?#][^"'<>]*)?$/i.test(clean)) {
-            return base ? base + "/propertyItems/" + clean : "/propertyItems/" + clean;
-        }
-
-        return raw.charAt(0) === "/" ? raw : "/" + clean;
+    function normalizeUrl(rawUrl, configuredBase) {
+        // Version 2.17 intentionally ignores configuredBase for plenty property files.
+        // Live mode on agrar-profi24.de turns /propertyItems/... into a 404 shop URL.
+        // Therefore all detected property-file PDFs are forced to the known CDN base:
+        // https://cdn03.plentymarkets.com/qw2mi3mfxcod/propertyItems/
+        return forceFixedPropertyItemsUrl(rawUrl);
     }
 
     function contains(haystack, needle) {
@@ -731,7 +718,7 @@
         if (cfg.debugMode) {
             var debug = document.createElement("div");
             debug.className = "ap-pdf-widget-debug";
-            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.16.0";
+            debug.textContent = "PDF-Widget Debug: Dokumente=" + result.documents.length + ", Kandidaten=" + result.rawCount + ", Quellen=" + result.sourceCount + ", konfiguriert=" + result.configuredCount + ", v=2.17.0";
             list.appendChild(debug);
         }
 

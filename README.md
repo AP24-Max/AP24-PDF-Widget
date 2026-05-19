@@ -1,4 +1,4 @@
-# AgrarProfiPdfWidget 2.16.0
+# AgrarProfiPdfWidget 2.17.0
 
 ShopBuilder-Widget für PDF-Dokumente aus Varianten-Eigenschaften vom Typ **Datei**.
 
@@ -44,3 +44,8 @@ Zusätzlich zum ShopBuilder-Widget bitte diese Container setzen:
 
 - `PDF-Widget: Styles` → `Ceres::SingleItem.Styles`
 - `PDF-Widget: Script` → `Ceres::SingleItem.AfterScriptsLoaded`
+
+
+## Version 2.17.0
+
+PropertyItems-PDFs werden fest auf `https://cdn03.plentymarkets.com/qw2mi3mfxcod/propertyItems/` normalisiert, damit Live-Links nicht mehr fälschlich über die Shop-Domain `/propertyItems/...` geöffnet werden.
